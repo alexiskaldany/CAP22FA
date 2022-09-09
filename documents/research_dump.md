@@ -2,6 +2,8 @@
 
 Lets use this for storing links and ideas for tackling the diagram set
 
+* The most basic model would just be questions, answers, and images in the network, no annotations at all. Lets see if we can build that then explore adding in annotations. If we get that far, we can look into the graph neural network stuff
+
 ## Overview
 
 So the data:
