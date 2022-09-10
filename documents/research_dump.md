@@ -33,3 +33,14 @@ Softmax will give relative weights among 4 choices.
 
 ### Visual_Bert
 link: https://huggingface.co/docs/transformers/model_doc/visual_bert
+
+https://huggingface.co/docs/transformers/model_doc/visual_bert
+
+### Examples
+How to embed image: https://github.com/huggingface/transformers/blob/main/examples/research_projects/visual_bert/demo.ipynb
+
+more indepth: https://github.com/huggingface/transformers/issues/13151
+
+https://huggingface.co/docs/transformers/main_classes/data_collator
+
+TODO: work through huggingface documentation
