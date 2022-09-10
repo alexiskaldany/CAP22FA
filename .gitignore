@@ -130,3 +130,7 @@ dmypy.json
 
 .src/data/
 .src/data
+./src/data
+./src/data/
+src/data/
+src/data
