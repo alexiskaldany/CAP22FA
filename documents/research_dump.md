@@ -44,3 +44,17 @@ more indepth: https://github.com/huggingface/transformers/issues/13151
 https://huggingface.co/docs/transformers/main_classes/data_collator
 
 TODO: work through huggingface documentation
+
+https://colab.research.google.com/drive/1bLGxKdldwqnMVA5x4neY7-l_8fKGWQYI?usp=sharing#scrollTo=5KPvzqT6mYJu generating visual embeddings
+
+### CLIP
+- Allows image and text
+https://huggingface.co/docs/transformers/v4.21.3/en/model_doc/clip#usage
+
+
+### Sept 11 Findings
+
+- After converting image to tensor, need to get a flat vector of equal length to tokenized question + possible answers
+
+Possible plan:
+1. 
