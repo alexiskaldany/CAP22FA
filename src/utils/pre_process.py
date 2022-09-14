@@ -92,16 +92,8 @@ def get_question_and_answers(id,path):
     return question_list
 
 def question_and_answers_dict(question_path_dict):
-    id_question_and_answers_dict = {}
+    id_question_and_answers_list = []
     for k,v in question_path_dict.items():
-        id_question_and_answers_dict[k] =(get_question_and_answers(k,v))
-    return id_question_and_answers_dict
+        id_question_and_answers_list.extend(get_question_and_answers(k,v))
+    return id_question_and_answers_list
 
-tensor = get_image_features(image_glob[0],visual_feature_extractor).pixel_values
-
-print(tensor.shape)
-visual_embeds = tensor.expand(size=(1,4,tensor.shape[1],tensor.shape[2],tensor.shape[2]))
-print(visual_embeds.shape)
-# batch_json_creation = question_and_answers_dict(question_path_dict)
-# with open(DATA_DIRECTORY / "question_and_answers_dict_id_key.json", "w") as f:
-#      json.dump(batch_json_creation, f)
