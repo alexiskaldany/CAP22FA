@@ -7,34 +7,47 @@ from transformers import (
     DeiTFeatureExtractor,
 )
 import torch
-
+from src.utils.configs import *
+import random
+from loguru import logger
 """ 
 Data
 """
-DATA_DIRECTORY = Path(__file__).parent.parent / "data"
-ANNOTATION_FOLDER = DATA_DIRECTORY / "ai2d" / "annotations"
-IMAGES_FOLDER = DATA_DIRECTORY / "ai2d" / "images"
-QUESTIONS_FOLDER = DATA_DIRECTORY / "ai2d" / "questions"
+
 DATA_JSON = DATA_DIRECTORY / "question_and_answers_dict_id_key.json"
 """ 
 Loading all the file paths
 """
-image_glob = glob.glob(str(IMAGES_FOLDER / "*.png"))
-image_ids = [int(Path(image_path).stem) for image_path in image_glob]
-image_path_dict = {k:v for k,v in zip(image_ids, image_glob)}
-annotation_glob = glob.glob(str(ANNOTATION_FOLDER / "*.png.json"))
-annotation_ids = [
-    int(annotation_path.split(".")[-3].split("/")[-1])
-    for annotation_path in annotation_glob
-]
-annotation_path_dict = {k:v for k,v in zip(annotation_ids, annotation_glob)}
-questions_glob = glob.glob(str(QUESTIONS_FOLDER / "*.png.json"))
-question_ids = [
-    int(question_path.split(".")[-3].split("/")[-1]) for question_path in questions_glob
-]
-question_path_dict = {k:v for k,v in zip(question_ids, questions_glob)}
-id_list = set(image_ids + annotation_ids + question_ids)
-id_index = [(id, index) for index, id in enumerate(id_list)]
+
+# def get_data_objects(ANNOTATION_FOLDER,IMAGES_FOLDER,QUESTIONS_FOLDER):
+#     image_glob = glob.glob(str(IMAGES_FOLDER / "*.png"))
+#     image_ids = [int(Path(image_path).stem) for image_path in image_glob]
+#     image_path_dict = {k:v for k,v in zip(image_ids, image_glob)}
+#     annotation_glob = glob.glob(str(ANNOTATION_FOLDER / "*.png.json"))
+#     annotation_ids = [
+#         int(annotation_path.split(".")[-3].split("/")[-1])
+#         for annotation_path in annotation_glob
+#     ]
+#     annotation_path_dict = {k:v for k,v in zip(annotation_ids, annotation_glob)}
+#     questions_glob = glob.glob(str(QUESTIONS_FOLDER / "*.png.json"))
+#     question_ids = [
+#         int(question_path.split(".")[-3].split("/")[-1]) for question_path in questions_glob
+#     ]
+#     question_path_dict = {k:v for k,v in zip(question_ids, questions_glob)}
+#     id_list = set(image_ids + annotation_ids + question_ids)
+#     id_index = [(id, index) for index, id in enumerate(id_list)]
+#     print(f"Number of images: {len(image_ids)}")
+#     combined_list = []
+#     for id in id_list:
+#         image_dict = {"image_path": image_path_dict[id]}
+#         with open(annotation_path_dict[id], "r") as f:
+#             annotation_dict = json.load(f)
+#         with open(question_path_dict[id], "r") as f:
+#             questions_dict = json.load(f)
+#         temp_list = [image_dict, annotation_dict, questions_dict]
+#         print(temp_list)
+#         combined_list.append(temp_list)   
+#     return combined_list
 
 """ 
 Processing the images
@@ -66,34 +79,49 @@ def get_image_features(image_path,visual_feature_extractor):
 """
 Loading Questions and Answers
 """
-def generate_question_id_path_dict(question_folder_path):
-    questions_glob = glob.glob(str(QUESTIONS_FOLDER / "*.png.json"))
-    question_ids = [
-        int(question_path.split(".")[-3].split("/")[-1]) for question_path in questions_glob
-    ]
-    question_path_dict = {k:v for k,v in zip(question_ids, questions_glob)}
-    return question_path_dict
-def get_question_and_answers(id,path):
-    with open(path, "r") as f:
-        questions_dict = json.load(f)
-    question_list = []
-    for key, value in questions_dict["questions"].items():
-        question_dict = {
-            "image_id": id,
-            "image_path": image_path_dict[id],
-            "question_id": value["questionId"],
-            "question": key,
-            "answer": value["answerTexts"][value["correctAnswer"]],
-            "correct_answer_id": value["correctAnswer"],
-            "answer_type": value["abcLabel"],
-            "answer_choices": value["answerTexts"],
-        }
-        question_list.append(question_dict)
-    return question_list
+# def generate_question_id_path_dict(question_folder_path):
+#     questions_glob = glob.glob(str(QUESTIONS_FOLDER / "*.png.json"))
+#     question_ids = [
+#         int(question_path.split(".")[-3].split("/")[-1]) for question_path in questions_glob
+#     ]
+#     question_path_dict = {k:v for k,v in zip(question_ids, questions_glob)}
+#     return question_path_dict
+# def get_question_and_answers(id,path):
+#     with open(path, "r") as f:
+#         questions_dict = json.load(f)
+#     question_list = []
+#     for key, value in questions_dict["questions"].items():
+#         question_dict = {
+#             "image_id": id,
+#             "image_path": image_path_dict[id],
+#             "question_id": value["questionId"],
+#             "question": key,
+#             "answer": value["answerTexts"][value["correctAnswer"]],
+#             "correct_answer_id": value["correctAnswer"],
+#             "answer_type": value["abcLabel"],
+#             "answer_choices": value["answerTexts"],
+#         }
+#         question_list.append(question_dict)
+#     return question_list
 
-def question_and_answers_dict(question_path_dict):
-    id_question_and_answers_list = []
-    for k,v in question_path_dict.items():
-        id_question_and_answers_list.extend(get_question_and_answers(k,v))
-    return id_question_and_answers_list
+# def question_and_answers_dict(question_path_dict):
+#     id_question_and_answers_list = []
+#     for k,v in question_path_dict.items():
+#         id_question_and_answers_list.extend(get_question_and_answers(k,v))
+#     return id_question_and_answers_list
+
+# TRAIN,VAL,TEST 
+
+def create_train_val_test_split(data_list):
+    logger.info("Creating train, val, test split")
+    train_index = int(0.7 * len(data_list))
+    val_index = int(0.9 * len(data_list))
+    random.shuffle(data_list)
+    train = data_list[:train_index]
+    val = data_list[train_index:val_index]
+    test = data_list[val_index:]
+    logger.info(f"Train: {len(train)}")
+    logger.info(f"Val: {len(val)}")
+    logger.info(f"Test: {len(test)}")
+    return train,val,test
 

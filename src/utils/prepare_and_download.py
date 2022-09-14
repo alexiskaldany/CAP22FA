@@ -2,7 +2,8 @@ import os
 import sys
 from pathlib import Path
 from loguru import logger
-
+import glob
+import json
 # def checking_folders(path_dict:dict):
 #     if not path_dict["DATA_DIRECTORY"].exists(): 
 #         os.makedirs(DATA_DIRECTORY)
@@ -17,13 +18,49 @@ def download_data(DATA_DIRECTORY:Path):
         os.system(download_command)
         logger.info("Completed downloading the data")
         logger.info("Unzipping the data")
-        os.system(f"unzip {DATA_DIRECTORY}/ai2d-all.zip")
+        os.system(f"unzip {DATA_DIRECTORY}/ai2d-all.zip -d {DATA_DIRECTORY}")
         logger.info("Completed unzipping the data")
         logger.info("Deleting the zip file")
-        os.system(f"rm {DATA_DIRECTORY}/ai2d-all.zip")
+        os.system(f"rm {DATA_DIRECTORY}/ai2d-all.zip && rm {DATA_DIRECTORY}/__MACOSX -rf")
         print("Download and cleanup complete")
         return True
     except Exception as e:
         logger.error(f"Error in downloading the data: {e}")
         return False
     
+def get_data_objects(ANNOTATION_FOLDER,IMAGES_FOLDER,QUESTIONS_FOLDER):
+    image_glob = glob.glob(str(IMAGES_FOLDER / "*.png"))
+    image_ids = [int(Path(image_path).stem) for image_path in image_glob]
+    image_path_dict = {k:v for k,v in zip(image_ids, image_glob)}
+    annotation_glob = glob.glob(str(ANNOTATION_FOLDER / "*.png.json"))
+    annotation_ids = [
+        int(annotation_path.split(".")[-3].split("/")[-1])
+        for annotation_path in annotation_glob
+    ]
+    annotation_path_dict = {k:v for k,v in zip(annotation_ids, annotation_glob)}
+    questions_glob = glob.glob(str(QUESTIONS_FOLDER / "*.png.json"))
+    question_ids = [
+        int(question_path.split(".")[-3].split("/")[-1]) for question_path in questions_glob
+    ]
+    question_path_dict = {k:v for k,v in zip(question_ids, questions_glob)}
+    id_list = set(image_ids).intersection(annotation_ids).intersection(question_ids)
+    print(f"Number of images: {len(image_ids)}")
+    combined_list = []
+    for id in id_list:
+        try:
+            image_dict = {"image_path": image_path_dict[id]}
+        except:
+            image_dict = {"image_path": None}
+            logger.exception(f"Image not found for id: {id}")
+        try:
+            annotation_dict = json.load(open(annotation_path_dict[id]))
+        except:
+            annotation_dict = {}
+        try:
+            question_dict = json.load(open(question_path_dict[id]))
+        except:
+            question_dict = {}
+            logger.exception(f"Error in loading the question file: {question_path_dict[id]}")
+        temp_list = [image_dict, annotation_dict, question_dict]
+        combined_list.append(temp_list)   
+    return combined_list
