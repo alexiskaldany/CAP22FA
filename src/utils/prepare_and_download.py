@@ -4,6 +4,7 @@ from pathlib import Path
 from loguru import logger
 import glob
 import json
+import pandas as pd
 # def checking_folders(path_dict:dict):
 #     if not path_dict["DATA_DIRECTORY"].exists(): 
 #         os.makedirs(DATA_DIRECTORY)
@@ -64,3 +65,21 @@ def get_data_objects(ANNOTATION_FOLDER,IMAGES_FOLDER,QUESTIONS_FOLDER):
         temp_list = [image_dict, annotation_dict, question_dict]
         combined_list.append(temp_list)   
     return combined_list
+
+def create_data_dataframe(data_list:list):
+    list_of_dicts = []
+    for data in data_list:
+        image_id = data[2]["imageName"].split(".")[0]
+        image_path = data[0]["image_path"]
+        img_dict = {"image_id": image_id, "image_path": image_path}
+        number_of_questions = len(data[2]["questions"])
+        for question_key in data[2]["questions"].keys():
+            question = question_key
+            list_of_answers = data[2]["questions"][question_key]["answerTexts"]
+            answer = list_of_answers[data[2]["questions"][question_key]["correctAnswer"]]
+            abcLabel = data[2]["questions"][question_key]["abcLabel"]
+            question_dict = {"question": question, "list_of_answers":list_of_answers,"answer": answer, "abcLabel": abcLabel}
+            temp_dict = {**img_dict, **question_dict}
+            list_of_dicts.append(temp_dict)
+    df = pd.DataFrame(list_of_dicts)
+    return df

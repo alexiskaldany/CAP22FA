@@ -26,7 +26,9 @@ def main(download,debug)->None:
         data_list = get_data_objects(ANNOTATION_FOLDER,IMAGES_FOLDER,QUESTIONS_FOLDER)
         with(open(DATA_DIRECTORY / "data_list.json","w")) as f:
             json.dump(data_list,f)
-        train, val, test = create_train_val_test_split(data_list)
+        df =create_data_dataframe(data_list)
+        df.to_csv(DATA_DIRECTORY / "input_rows.csv",index=False)
+        # train, val, test = create_train_val_test_split(data_list)
         return 
     
 if __name__ == "__main__":
