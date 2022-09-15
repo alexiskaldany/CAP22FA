@@ -6,26 +6,20 @@ import numpy as np
 import sys
 from loguru import logger
 import math
-logger.remove()
-logger.add(
-    sys.stdout,
-    format="<light-yellow>{time:YYYY-MM-DD HH:mm:ss}</light-yellow> | <light-blue>{level}</light-blue> | <cyan>{message}</cyan> | <light-red>{function}: {line}</light-red>",
-    level="DEBUG",
-    backtrace=True,
-    colorize=True,
-)
+from pathlib import Path
+from src.utils.configs import ANNOTATION_THICKNESS
+
 def drawing_labels(Img,label_dict:dict,color:Tuple[int,int,int]):
     label_id = label_dict["id"]
     coordinates_list = label_dict["rectangle"]
     replacement_text = label_dict["replacementText"]
     value = label_dict["value"]
     Img= cv2.rectangle(img=Img,pt1=coordinates_list[0],pt2=coordinates_list[1],color=color,thickness=1)
-    Img=cv2.putText(img=Img,text=value,org=coordinates_list[0],fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=color,thickness=1)
+    Img=cv2.putText(img=Img,text=value,org=coordinates_list[0],fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=color,thickness=ANNOTATION_THICKNESS)
     return Img
 
 def drawing_arrows(Img,coordinate_list,color:Tuple[int,int,int]):
-    Img=cv2.polylines(Img,pts=[np.array(coordinate_list)],isClosed=False,color=color,thickness=1)
-    # cv2.imwrite(annotationed_image_path, img)    
+    Img=cv2.polylines(Img,pts=[np.array(coordinate_list)],isClosed=False,color=color,thickness=ANNOTATION_THICKNESS)   
     return Img
 
 def drawing_arrow_heads(Img,coordinate_list:list,color:Tuple[int,int,int],angle:float):
@@ -48,7 +42,7 @@ def drawing_arrow_heads(Img,coordinate_list:list,color:Tuple[int,int,int],angle:
     Center_point = [int((coordinate_list[0][0]+coordinate_list[1][0])/2),int((coordinate_list[0][1]+coordinate_list[1][1])/2)]
     Radius = int(math.sqrt((coordinate_list[0][0]-coordinate_list[1][0])**2 + (coordinate_list[0][1]-coordinate_list[1][1])**2))
     logger.debug(f"{Center_point,Radius}")
-    Img=cv2.circle(img=Img, center=Center_point, radius=Radius, color=color, thickness=1)
+    Img=cv2.circle(img=Img, center=Center_point, radius=Radius, color=color, thickness=ANNOTATION_THICKNESS)
     return Img
 
 def drawing_blobs(Img,coordinate_list:list,color:Tuple[int,int,int]):
@@ -57,7 +51,7 @@ def drawing_blobs(Img,coordinate_list:list,color:Tuple[int,int,int]):
 def generate_random_color_tupple()->Tuple[int,int,int]:
     return (np.random.randint(0,255),np.random.randint(0,255),np.random.randint(0,255))
 
-def full_annotation(annotation_dict:dict,image_path:str,annotationed_image_path:str):
+def full_annotation(annotation_dict:dict,image_path:str,annotated_image_path:str):
     Img_list = [cv2.imread(image_path)]
     label_number = len([annotation_dict["text"].keys()])
     logger.debug(f"Drawing labels: {label_number} ")
@@ -75,14 +69,11 @@ def full_annotation(annotation_dict:dict,image_path:str,annotationed_image_path:
     logger.debug(f"Drawing blobs:{arrow_number}")
     for key in list(annotation_dict["blobs"].keys()):
         Img_list.append(drawing_blobs(Img_list[-1],annotation_dict["blobs"][key]["polygon"],generate_random_color_tupple()))
-    cv2.imwrite(annotationed_image_path, Img_list[-1])
-    return annotationed_image_path
+    cv2.imwrite(annotated_image_path, Img_list[-1])
+    return annotated_image_path
 
-
-# print(len(json.load(open("/Users/alexiskaldany/school/CAP22FA/src/data/data_list.json"))))
-# random = np.random.randint(0,4563)
-# print(random)
-# dict = json.load(open("/Users/alexiskaldany/school/CAP22FA/src/data/data_list.json"))[random]
-# print(len(dict))
-full_dict = json.load(open("/Users/alexiskaldany/school/CAP22FA/src/data/data_list.json"))
-[full_annotation(full_dict[x][1],full_dict[x][0]["image_path"],f"/Users/alexiskaldany/school/CAP22FA/test_annotations/{x}_annotated.png") for x in range(4563)]
+def execute_full_set_annotation(DATA_LIST_PATH:Path,ANNOTATED_IMAGES_FOLDER:Path):
+    full_dict = json.load(open(DATA_LIST_PATH))
+    annotated_image_paths = [full_annotation(full_dict[x][1],full_dict[x][0]["image_path"],f"{ANNOTATED_IMAGES_FOLDER}{full_dict[x][0]['image_path'].split('/')[-1].split('.'[0])}_annotated.png") for x in range(len(full_dict))]
+    return 
+    

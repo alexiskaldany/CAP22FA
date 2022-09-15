@@ -66,13 +66,12 @@ def get_data_objects(ANNOTATION_FOLDER,IMAGES_FOLDER,QUESTIONS_FOLDER):
         combined_list.append(temp_list)   
     return combined_list
 
-def create_data_dataframe(data_list:list):
+def create_dataframe(data_list:list):
     list_of_dicts = []
     for data in data_list:
         image_id = data[2]["imageName"].split(".")[0]
         image_path = data[0]["image_path"]
         img_dict = {"image_id": image_id, "image_path": image_path}
-        number_of_questions = len(data[2]["questions"])
         for question_key in data[2]["questions"].keys():
             question = question_key
             list_of_answers = data[2]["questions"][question_key]["answerTexts"]
