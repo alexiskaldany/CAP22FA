@@ -1,37 +1,88 @@
 import cv2
 import matplotlib.pyplot as plt
 import json
-def drawing_labels(img_path,annotation_dict):
-    img = cv2.imread(img_path)
-    for key in annotation_dict["text"].keys():
-        label_id = annotation_dict["text"][key]["id"]
-        shape = list(annotation_dict["text"][key].keys())[1]
-        coordinates_list = annotation_dict["text"][key][shape]
-        replacement_text = annotation_dict["text"][key]["replacementText"]
-        value = annotation_dict["text"][key]["value"]
-        image=cv2.rectangle(img,pt1=coordinates_list[0],pt2=coordinates_list[1],color=(255,0,0),thickness=2)
-        
-        image=cv2.putText(image,text=value,org=coordinates_list[0],fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=(255,0,0),thickness=2)
-        annotationed_image_path = img_path.replace(".png","_annotationed.png")
-        cv2.imwrite(annotationed_image_path, image) 
-        # image.save(annotationed_image_path) 
-    return annotationed_image_path
+from typing import Tuple
+import numpy as np
+import sys
+from loguru import logger
+import math
+logger.remove()
+logger.add(
+    sys.stdout,
+    format="<light-yellow>{time:YYYY-MM-DD HH:mm:ss}</light-yellow> | <light-blue>{level}</light-blue> | <cyan>{message}</cyan> | <light-red>{function}: {line}</light-red>",
+    level="DEBUG",
+    backtrace=True,
+    colorize=True,
+)
+def drawing_labels(Img,label_dict:dict,color:Tuple[int,int,int]):
+    label_id = label_dict["id"]
+    coordinates_list = label_dict["rectangle"]
+    replacement_text = label_dict["replacementText"]
+    value = label_dict["value"]
+    Img= cv2.rectangle(img=Img,pt1=coordinates_list[0],pt2=coordinates_list[1],color=color,thickness=1)
+    Img=cv2.putText(img=Img,text=value,org=coordinates_list[0],fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=color,thickness=1)
+    return Img
 
-def drawing_arrows(img_path:str,annotation_dict:dict):
-    img = cv2.imread(img_path)
+def drawing_arrows(Img,coordinate_list,color:Tuple[int,int,int]):
+    Img=cv2.polylines(Img,pts=[np.array(coordinate_list)],isClosed=False,color=color,thickness=1)
+    # cv2.imwrite(annotationed_image_path, img)    
+    return Img
+
+def drawing_arrow_heads(Img,coordinate_list:list,color:Tuple[int,int,int],angle:float):
+    """ 
+    pt1 = (x1,y1)
+    pt2 = (x2,y2)
+    pt3 = (? , ?)
+    angle1_2_3 == angle2_1_3 == orientation/2
+    side1_2 = ((x1-x2)**2 + (y1-y2)**2)**0.5
+    side2_3 = side1_2 * tan(angle1_2_3)
+    side_1_3 = ((x1-x3)**2 + (y1-y3)**2)**0.5
     
-    return annotationed_image_path
-
-def drawing_arrow_heads(img_path:str,annotation_dict:dict):
-    img = cv2.imread(img_path)
-    for head in list(annotation_dict["arrowHeads"].keys()):
-        orientation = annotation_dict["arrowHeads"][head]["orientation"]
-        
-    return annotationed_image_path
-
-def drawing_blobs(img_path:str,annotation_dict:dict):
-    img = cv2.imread(img_path)
+    m1 = np.arctan()
+    Bleh trig...
+    Lets just draw a circle using the two points
     
-    return annotationed_image_path
-image=drawing_labels("/Users/alexiskaldany/school/CAP22FA/example_data/0.png",json.load(open("/Users/alexiskaldany/school/CAP22FA/example_data/0.png_annotation.json")))
+    midpoint = [(x1+x2)/2,(y1+y2)/2]
+    radius = pt1[0]-pt2[0]
+    """
+    Center_point = [int((coordinate_list[0][0]+coordinate_list[1][0])/2),int((coordinate_list[0][1]+coordinate_list[1][1])/2)]
+    Radius = int(math.sqrt((coordinate_list[0][0]-coordinate_list[1][0])**2 + (coordinate_list[0][1]-coordinate_list[1][1])**2))
+    logger.debug(f"{Center_point,Radius}")
+    Img=cv2.circle(img=Img, center=Center_point, radius=Radius, color=color, thickness=1)
+    return Img
 
+def drawing_blobs(Img,coordinate_list:list,color:Tuple[int,int,int]):
+    Img=cv2.polylines(Img,pts=[np.array(coordinate_list)],isClosed=True,color=color,thickness=1)
+    return Img
+def generate_random_color_tupple()->Tuple[int,int,int]:
+    return (np.random.randint(0,255),np.random.randint(0,255),np.random.randint(0,255))
+
+def full_annotation(annotation_dict:dict,image_path:str,annotationed_image_path:str):
+    Img_list = [cv2.imread(image_path)]
+    label_number = len([annotation_dict["text"].keys()])
+    logger.debug(f"Drawing labels: {label_number} ")
+    for key in list(annotation_dict["text"].keys()):
+        logger.debug(f"Drawing label: {annotation_dict['text'][key]} ")
+        Img_list.append(drawing_labels(Img_list[-1],annotation_dict["text"][key],generate_random_color_tupple()))    
+    arrow_number = len(list(annotation_dict["arrows"].keys()))
+    logger.debug(f"Drawing arrows:{arrow_number}")
+    for key in list(annotation_dict["arrows"].keys()):
+        Img_list.append(drawing_arrows(Img_list[-1],annotation_dict["arrows"][key]["polygon"],generate_random_color_tupple()))
+    arrowhead_number = len(list(annotation_dict["arrowHeads"].keys()))
+    logger.debug(f"Drawing arrow heads:{arrowhead_number}")
+    for key in list(annotation_dict["arrowHeads"].keys()):
+        Img_list.append(drawing_arrow_heads(Img_list[-1],annotation_dict["arrowHeads"][key]["rectangle"],annotation_dict["arrowHeads"][key]["orientation"],generate_random_color_tupple()))
+    logger.debug(f"Drawing blobs:{arrow_number}")
+    for key in list(annotation_dict["blobs"].keys()):
+        Img_list.append(drawing_blobs(Img_list[-1],annotation_dict["blobs"][key]["polygon"],generate_random_color_tupple()))
+    cv2.imwrite(annotationed_image_path, Img_list[-1])
+    return annotationed_image_path
+
+
+# print(len(json.load(open("/Users/alexiskaldany/school/CAP22FA/src/data/data_list.json"))))
+# random = np.random.randint(0,4563)
+# print(random)
+# dict = json.load(open("/Users/alexiskaldany/school/CAP22FA/src/data/data_list.json"))[random]
+# print(len(dict))
+full_dict = json.load(open("/Users/alexiskaldany/school/CAP22FA/src/data/data_list.json"))
+[full_annotation(full_dict[x][1],full_dict[x][0]["image_path"],f"/Users/alexiskaldany/school/CAP22FA/test_annotations/{x}_annotated.png") for x in range(4563)]
