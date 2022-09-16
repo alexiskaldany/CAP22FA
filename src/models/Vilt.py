@@ -23,13 +23,14 @@ def run_model(data):
     questions = []
     correct_answers = []
     predicted_answers = []
-    for index,image_id in enumerate(data.keys()):
+    for index,image_id in enumerate(list(data.keys())):
+        print(image_id)
         question_list = data[image_id]
+        print(data[image_id])
         if len(question_list) > 0:
             image_path = question_list[0]["image_path"]
-        else:
-            print(len(question_list))
-            image_path = question_list[0]["image_path"]
+        if len(question_list) == 0 or question_list == None:
+            continue
         image = load_image_resize_convert(image_path)
         if index% 100 == 0:
             print(f"Processing image {index}")

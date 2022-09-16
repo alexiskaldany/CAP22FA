@@ -4,15 +4,10 @@ Fall 22` Capstone Project, by Josh Ting and Alexis Kaldany
 
 ## Setup
 
-This project is set up using pyenv and poetry. These allow you to easily customize which version of python to use and to manage dependencies respectively.
-
-If you don't already have both in place:
+This project is set up using pyenv and poetry.
 
 - Follow the instructions for pyenv at https://github.com/pyenv/pyenv#installation. Please do not skip the
-  pre-requisites step. There is also more info at https://github.com/pyenv/pyenv/wiki#suggested-build-environment to
-  ensure you get this right. There is a dated but nice tutorial at https://realpython.com/intro-to-pyenv if you
-  want to learn
-  more about pyenv.
+  pre-requisites step. There is also more info at https://github.com/pyenv/pyenv/wiki#suggested-build-environment 
 - Follow the instructions to install poetry at https://python-poetry.org/docs/#installation
   - Now configure poetry so that the virtualenv will be created within the repository when the project is installed:
     `poetry config virtualenvs.in-project true`
@@ -35,3 +30,11 @@ If you don't already have both in place:
 ## Models
 
 - We should create a standard
+
+
+## Work done so far
+
+- Finished the annotation functions
+  1. Could use some touchups for the arrowheads
+- Close to finishing the functions which build the unified csv containing all the data the models need for training
+- Learned how to extract visual embeddings and how to work more closely with pre-trained models.

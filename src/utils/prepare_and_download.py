@@ -10,9 +10,11 @@ import pandas as pd
 #         os.makedirs(DATA_DIRECTORY)
 #     return True
 
-def download_data(DATA_DIRECTORY:Path):
+def download_data(DATA_DIRECTORY:Path,ANNOTATED_IMAGES_FOLDER:Path):
     try:
         logger.info("Downloading the data")
+        if not ANNOTATED_IMAGES_FOLDER.exists() :
+            os.makedirs(ANNOTATED_IMAGES_FOLDER)
         if not DATA_DIRECTORY.exists(): 
             os.makedirs(DATA_DIRECTORY)
         download_command = f"aws s3 cp --no-sign-request s3://ai2-public-datasets/diagrams/ai2d-all.zip {DATA_DIRECTORY}"
@@ -45,7 +47,8 @@ def get_data_objects(ANNOTATION_FOLDER,IMAGES_FOLDER,QUESTIONS_FOLDER):
     ]
     question_path_dict = {k:v for k,v in zip(question_ids, questions_glob)}
     id_list = set(image_ids).intersection(annotation_ids).intersection(question_ids)
-    print(f"Number of images: {len(image_ids)}")
+    img_number = len(image_ids)
+    logger.info(f"Number of images: {img_number}")
     combined_list = []
     for id in id_list:
         try:
