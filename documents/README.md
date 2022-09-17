@@ -1,4 +1,4 @@
-# Research
+# Research Dump
 
 Lets use this for storing links and ideas for tackling the diagram set
 
@@ -50,6 +50,22 @@ https://colab.research.google.com/drive/1bLGxKdldwqnMVA5x4neY7-l_8fKGWQYI?usp=sh
 ### CLIP
 - Allows image and text
 https://huggingface.co/docs/transformers/v4.21.3/en/model_doc/clip#usage
+
+### VILT
+ViLT incorporates text embeddings into a Vision Transformer (ViT), allowing it to have a minimal design for Vision-and-Language Pre-training (VLP).
+https://huggingface.co/docs/transformers/model_doc/vilt
+
+### LayoutMV2
+LayoutLMv2 not only uses the existing masked visual-language modeling task but also the new text-image alignment and text-image matching tasks in the pre-training stage, where cross-modality interaction is better learned. 
+https://huggingface.co/docs/transformers/model_doc/layoutlmv2#transformers.LayoutLMv2ForQuestionAnswering
+
+### LayoutMV3
+Experimental results show that LayoutLMv3 achieves state-of-the-art performance not only in text-centric tasks, including form understanding, receipt understanding, and document visual question answering, but also in image-centric tasks such as document image classification and document layout analysis.
+https://huggingface.co/docs/transformers/model_doc/layoutlmv3
+
+### LXMERT
+It is a series of bidirectional transformer encoders (one for the vision modality, one for the language modality, and then one to fuse both modalities) pretrained using a combination of masked language modeling, visual-language text alignment, ROI-feature regression, masked visual-attribute modeling, masked visual-object modeling, and visual-question answering objectives. The pretraining consists of multiple multi-modal datasets: MSCOCO, Visual-Genome + Visual-Genome Question Answering, VQA 2.0, and GQA.
+https://huggingface.co/docs/transformers/model_doc/lxmert
 
 
 ### Sept 11 Findings
