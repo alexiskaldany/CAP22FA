@@ -177,3 +177,4 @@ if __name__ == "__main__":
     print(data_df.head(3)['answer'])
     print(data_df.head(3)['list_of_answers'])
     print(data_df.head(3)['abcLabel'])
+    print(data_df[data_df['image_path']=='/home/ubuntu/capstone/CAP22FA/src/data/ai2d/images/1.png'])
