@@ -1,4 +1,8 @@
-
+"""
+pre_process.py
+author: @alexiskaldany, @justjoshtings
+created: 9/23/22
+"""
 from pathlib import Path
 import glob
 import json

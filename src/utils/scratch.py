@@ -1,3 +1,8 @@
+"""
+scratch.py
+author: @alexiskaldany, @justjoshtings
+created: 9/23/22
+"""
 from src.utils.configs import DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER
 from src.utils.prepare_and_download import *
 from src.utils.pre_process import *

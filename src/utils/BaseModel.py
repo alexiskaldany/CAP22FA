@@ -1,3 +1,9 @@
+"""
+BaseModel.py
+author: @alexiskaldany, @justjoshtings
+created: 9/23/22
+"""
+
 from torch.utils.data import DataLoader
 import pandas as pd
 import json

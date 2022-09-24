@@ -1,3 +1,11 @@
+"""
+applying_annotations.py
+Utility functions to apply annotations onto image data. Draws labels, arrows, arrow heads, and blobs.
+Allows for drawing full set of annotations or just a part.
+author: @alexiskaldany, @justjoshtings
+created: 9/23/22
+"""
+
 import cv2
 import matplotlib.pyplot as plt
 import json
