@@ -24,6 +24,7 @@ Improve on [research](https://arxiv.org/pdf/1603.07396.pdf)<sup>1</sup> done in 
 
 # <a name="structure"></a>
 ## Folder Structure
+```
 .
 ├── assets                  # For storing other supporting assets like images, logos, gifs, etc.
 ├── documents               # Research documents
@@ -34,6 +35,7 @@ Improve on [research](https://arxiv.org/pdf/1603.07396.pdf)<sup>1</sup> done in 
 │   ├── utils               # Directory for utility functions
 │   └── ...                 # Lorem ipsum
 └── ...
+```
 
 # <a name="background"></a>
 ## Background and Related Works

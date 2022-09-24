@@ -31,7 +31,17 @@ Softmax will give relative weights among 4 choices.
 
 ## Transformers
 
+| Model   | Link | Inputs | Outputs | Tokenizer | Checkpoints to Use | vocab_size | hidden_size | Image | num_hidden_layers | Can Run on Our EC2? |
+| ------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| VisualBert | [Link](https://huggingface.co/docs/transformers/model_doc/visual_bert) | text embeddings, visual embeddings, visual token type ids, visual atten mask | TBD | BertTokenizer | ‘visualbert-vqa’ | 30522 | 768 | 512 visual_embedding_dim | 12 | TBD |
+| CLIP (Doesn't do VQA out of box) | [Link](https://huggingface.co/docs/transformers/v4.21.3/en/model_doc/clip#usage) | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| VILT | [Link](https://huggingface.co/docs/transformers/model_doc/vilt) | encodings from ViltProcessor | TBD | BertTokenizerFast | "dandelin/vilt-b32-finetuned-vqa" | 30522 | 768 | image_size 384 | 12 | TBD |
+| LayoutMV2 | [Link](https://huggingface.co/docs/transformers/model_doc/layoutlmv2#transformers.LayoutLMv2ForQuestionAnswering) | ['input_ids', 'token_type_ids', 'attention_mask', 'bbox', 'image'] encodings from LayoutLMv2Processor | TBD | LayoutLMv2TokenizerFast | LayoutLMv2ForQuestionAnswering | 30522 | 768 | image_size 128 | 12 | TBD |
+| LayoutMV3 | [Link](https://huggingface.co/docs/transformers/model_doc/layoutlmv3) | input_ids, attention_mask, token_type_ids, bbox encodings from LayoutLMv3Processor  | TBD |  LayoutLMv3Tokenizer or  LayoutLMv3TokenizerFast | TFAutoModelForQuestionAnswering.from_pretrained("microsoft/layoutlmv3-base") | 50265 | 768 | image_size 128 | 12 | TBD |
+| LXMERT | [Link](https://huggingface.co/docs/transformers/model_doc/lxmert) | input_ids, attention_mask, token_type_ids, bbox encodings from LayoutLMv3Processor  | TBD |  LayoutLMv3Tokenizer or  LayoutLMv3TokenizerFast | LxmertForQuestionAnswering.from_pretrained("unc-nlp/lxmert-base-uncased") but doc examples don't show image input only text, not sure if possible | 30522 | 768 | image_size 2048 | 12 | TBD |
+
 ### Visual_Bert
+
 link: https://huggingface.co/docs/transformers/model_doc/visual_bert
 
 https://huggingface.co/docs/transformers/model_doc/visual_bert
@@ -74,3 +84,10 @@ https://huggingface.co/docs/transformers/model_doc/lxmert
 
 Possible plan:
 1. 
+
+### Things to Consider
+1. Dataset doesn't split into train/test already so our testing dataset is going to be different from the original paper's but our metrics could still be used to compare if we randomly sample the same amount of data for testing as they did, will just need to caveat that it isn't orange to orange.
+2. Some questions need annotations to reference and answer. We will need to include annotations straight from the get go. I think our first attempt can just be to feed the annotated image as the image input. Then we can try splitting original image and annotation inputs after we have something that kinda works and try to make it better.
+3. Some data don't have questions like 1.png or 2.png. Looks like they are removed from the dataset in get_data_objects() so we good. We could maybe make our own question and answers if we really want to include them but I'm okay to not.
+4. Okay so doing more research, looking at the data, and seeing the models available. I think a good way to take this project is part 1, to do the annotations straight onto the image and train the few transformers that we can and see results. Then for second part of project try to create our own processor/feature extractor that considers annotations maybe more separately from the image and more feature engineered to be useful to create these ['input_ids', 'token_type_ids', 'attention_mask', 'bbox', 'image'] encodings that most of the models need and train on those and see. So the crux will be to understand how these processors work (ie: how tokenizers generate embeddings, how visual embeddings are created, how can we turn annotations into some embedding that we can combine with the other two to generate the input_ids, attention_masks, etc.)
+

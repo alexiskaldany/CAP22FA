@@ -1,6 +1,21 @@
+"""
+Main.py
+Main script to execute for project, executes all functions needed to perform project.
+author: @alexiskaldany, @justjoshtings
+created: 9/23/22
+"""
+
 from genericpath import exists
 from loguru import logger
 import sys
+import os
+
+# get current directory
+path = os.getcwd()
+parent_path = os.path.abspath(os.path.join(path, os.pardir))
+
+# add src to executable path to allow imports from src
+sys.path.insert(0, parent_path)
 
 logger.remove()
 logger.add(
@@ -42,7 +57,13 @@ def main(download: bool, create_data: bool) -> None:
     if torch.cuda.is_available():
         logger.info("GPU Available")
     if download:
-        download_data(DATA_DIRECTORY, ANNOTATED_IMAGES_FOLDER)
+        # If folder empty then download otherwise already has data and don't need to duplicate/replace
+        if DATA_DIRECTORY.exists() == False:
+            download_data(DATA_DIRECTORY, ANNOTATED_IMAGES_FOLDER)
+        else:
+            # If directory exists, check if empty, if empty, download otherwise skip
+            if not os.listdir(DATA_DIRECTORY):
+                download_data(DATA_DIRECTORY, ANNOTATED_IMAGES_FOLDER)
         return
     if create_data:
         logger.info(f"Creating data_json")
@@ -98,4 +119,5 @@ def main(download: bool, create_data: bool) -> None:
 
 
 if __name__ == "__main__":
+    print("Executing main.py, capstone")
     main(prog_name="capstone")
