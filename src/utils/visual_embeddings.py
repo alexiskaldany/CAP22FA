@@ -1,3 +1,8 @@
+"""
+visual_embeddings.py
+author: @alexiskaldany, @justjoshtings
+created: 9/23/22
+"""
 from src.utils.configs import IMAGE_DIMENSIONS
 import torch
 from torchvision import datasets, transforms
