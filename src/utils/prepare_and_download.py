@@ -152,12 +152,7 @@ if __name__ == "__main__":
     # add src to executable path to allow imports from src
     sys.path.insert(0, parent_path)
 
-    from src.utils.configs import (
-        DATA_DIRECTORY,
-        ANNOTATION_FOLDER,
-        IMAGES_FOLDER,
-        QUESTIONS_FOLDER,
-        )
+    from src.utils.configs import DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER
 
     # If folder empty then download otherwise already has data and don't need to duplicate/replace
     if DATA_DIRECTORY.exists() == False:

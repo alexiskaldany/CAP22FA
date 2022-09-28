@@ -23,6 +23,7 @@ QUESTIONS_FOLDER = DATA_DIRECTORY / "ai2d" / "questions"
 number_of_images = len(glob.glob(str(IMAGES_FOLDER / "*.png")))
 print(f"Number of images: {number_of_images}")
 # annotation_list = [str(ANNOTATION_FOLDER)+"/"+str(i)+".png.json" for i in range(number_of_images)]
+
 """ 
 Loading all the file paths
 """
