@@ -22,6 +22,9 @@ ANNOTATED_IMAGES_FOLDER = DATA_DIRECTORY / "ai2d" / "annotated_images"
 #     os.makedirs(ANNOTATED_IMAGES_FOLDER)
 RUNS_FOLDER = Path(__file__).parent.parent / "runs"
 
+TEST_DIRECTORY = Path(__file__).parent.parent / "tests"
+TEST_IMAGE_OUTPUT = TEST_DIRECTORY / "image_tests"
+
 # Data File Paths
 DATA_JSON = DATA_DIRECTORY / "data_set.json"
 DATA_CSV = DATA_DIRECTORY / "data.csv"

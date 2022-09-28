@@ -11,12 +11,14 @@ import numpy as np
 from loguru import logger
 from pathlib import Path
 from torchvision.models.resnet import resnet18 as _resnet18
+
 def copy_embeddings(m, i, o):
         """Copy embeddings from the penultimate layer.
         """
         o = o[:, :, 0, 0].detach().numpy().tolist()
         embeddings.append(o)
         return 
+
 def load_image_resize_convert(image_path):
     preprocess = transforms.Compose([
     transforms.ToTensor(),

@@ -5,17 +5,28 @@ author: @alexiskaldany, @justjoshtings
 created: 9/23/22
 """
 
+'''
+Import and setup
+'''
 from genericpath import exists
 from loguru import logger
 import sys
 import os
+import json
+import torch
+import click
 
 # get current directory
 path = os.getcwd()
 parent_path = os.path.abspath(os.path.join(path, os.pardir))
-
 # add src to executable path to allow imports from src
 sys.path.insert(0, parent_path)
+
+from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER
+from src.utils.prepare_and_download import download_data, get_data_objects, create_dataframe
+from src.utils.pre_process import load_image_resize_convert, get_image_features, create_train_val_test_split
+from src.utils.applying_annotations import execute_full_set_annotation
+from src.utils.visual_embeddings import get_multiple_embeddings
 
 logger.remove()
 logger.add(
@@ -26,28 +37,9 @@ logger.add(
     colorize=True,
 )
 
-from src.utils.configs import (
-    DATA_DIRECTORY,
-    ANNOTATION_FOLDER,
-    IMAGES_FOLDER,
-    QUESTIONS_FOLDER,
-)
-from src.utils.prepare_and_download import *
-from src.utils.pre_process import *
-from src.utils.applying_annotations import execute_full_set_annotation
-from src.utils.configs import (
-    DATA_JSON,
-    DATA_CSV,
-    DATA_DIRECTORY,
-    ANNOTATION_FOLDER,
-    IMAGES_FOLDER,
-    QUESTIONS_FOLDER,
-    ANNOTATED_IMAGES_FOLDER,
-)
-from src.utils.visual_embeddings import get_multiple_embeddings
-import click
-
-
+'''
+Main Function
+'''
 @click.command()
 @click.option("-d", "--download", is_flag=True, help="Download the data")
 @click.option(
@@ -74,18 +66,14 @@ def main(download: bool, create_data: bool) -> None:
         logger.info("Starting annotations")
         execute_full_set_annotation(DATA_JSON, ANNOTATED_IMAGES_FOLDER)
         id_list = list(dataframe["image_id"])
-        annotated_image_path = [
-            str(ANNOTATED_IMAGES_FOLDER / f"{id}.png") for id in id_list
-        ]
+        annotated_image_path = [str(ANNOTATED_IMAGES_FOLDER / f"{id}.png") for id in id_list]
         dataframe["annotated_image_path"] = annotated_image_path
         dataframe.to_csv(DATA_CSV, index=False)
         logger.info("Getting annotated images embeddings")
         annotated_list = []
         raw_list = []
         try:
-            annotated_images_embeddings = get_multiple_embeddings(
-                list(dataframe["annotated_image_path"])
-            )
+            annotated_images_embeddings = get_multiple_embeddings(list(dataframe["annotated_image_path"]))
         except:
             logger.exception("Error getting embeddings")
         # dataframe["annotated_image_embeds"] = dataframe.apply(
@@ -121,3 +109,4 @@ def main(download: bool, create_data: bool) -> None:
 if __name__ == "__main__":
     print("Executing main.py, capstone")
     main(prog_name="capstone")
+    
