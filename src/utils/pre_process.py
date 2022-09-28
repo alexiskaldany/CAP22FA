@@ -3,11 +3,9 @@ from pathlib import Path
 import glob
 import json
 from PIL import Image
-from transformers import (
-    DeiTFeatureExtractor,
-)
+from transformers import DataCollatorWithPadding
 import torch
-from src.utils.configs import *
+from src.utils.configs import * 
 import random
 from loguru import logger
 """ 
@@ -65,9 +63,9 @@ Image Feature Extraction
 """
 # print(f"Average image dimensions: {average_dims}")
 # print(f"Image dimensions: {image_dimensions[:10]}")
-visual_feature_extractor = DeiTFeatureExtractor.from_pretrained(
-    "facebook/deit-base-distilled-patch16-224"
-)
+# visual_feature_extractor = DeiTFeatureExtractor.from_pretrained(
+#     "facebook/deit-base-distilled-patch16-224"
+# )
 def get_image_features(image_path,visual_feature_extractor):
     image = load_image_resize_convert(image_path)
     image_feature = visual_feature_extractor(

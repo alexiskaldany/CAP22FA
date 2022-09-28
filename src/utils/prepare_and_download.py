@@ -5,10 +5,7 @@ from loguru import logger
 import glob
 import json
 import pandas as pd
-# def checking_folders(path_dict:dict):
-#     if not path_dict["DATA_DIRECTORY"].exists(): 
-#         os.makedirs(DATA_DIRECTORY)
-#     return True
+from transformers import DataCollatorWithPadding
 
 def download_data(DATA_DIRECTORY:Path,ANNOTATED_IMAGES_FOLDER:Path):
     try:
@@ -85,3 +82,7 @@ def create_dataframe(data_list:list):
             list_of_dicts.append(temp_dict)
     df = pd.DataFrame(list_of_dicts)
     return df
+
+def create_DataCollatorWithPadding(dataframe:pd.DataFrame,tokenizer):
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+    return data_collator

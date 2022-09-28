@@ -1,4 +1,3 @@
-from genericpath import exists
 from loguru import logger
 import sys
 
@@ -57,7 +56,6 @@ def main(download: bool, create_data: bool) -> None:
             str(ANNOTATED_IMAGES_FOLDER / f"{id}.png") for id in id_list
         ]
         dataframe["annotated_image_path"] = annotated_image_path
-        dataframe.to_csv(DATA_CSV, index=False)
         logger.info("Getting annotated images embeddings")
         annotated_list = []
         raw_list = []

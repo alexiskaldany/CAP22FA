@@ -9,6 +9,7 @@ ANNOTATED_IMAGES_FOLDER = DATA_DIRECTORY / "ai2d" / "annotated_images"
 if ANNOTATED_IMAGES_FOLDER.exists() == False:
     os.mkdir(ANNOTATED_IMAGES_FOLDER)
 RUNS_FOLDER = Path(__file__).parent.parent / "runs"
+SAVED_MODELS_FOLDER = Path(__file__).parent.parent / "models/saved_models"
 
 # Data File Paths
 
