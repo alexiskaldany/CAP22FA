@@ -72,6 +72,8 @@ def drawing_arrow_heads(
 
     midpoint = [(x1+x2)/2,(y1+y2)/2]
     radius = pt1[0]-pt2[0]
+
+    Look at 23.png for seeing how to evaluate arrows
     """
     Center_point = [
         int((coordinate_list[0][0] + coordinate_list[1][0]) / 2),
