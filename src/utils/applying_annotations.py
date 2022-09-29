@@ -1,3 +1,7 @@
+""" 
+
+"""
+
 import cv2
 import matplotlib.pyplot as plt
 import json
@@ -11,7 +15,10 @@ from src.utils.configs import ANNOTATION_THICKNESS
 import os
 
 
-def drawing_labels(Img, label_dict: dict, color: Tuple[int, int, int]):
+def drawing_labels(Img:cv2.imread, label_dict: dict, color: Tuple[int, int, int]) -> cv2.imread:
+    """ 
+    Draws labels on an image
+    """
     label_id = label_dict["id"]
     coordinates_list = label_dict["rectangle"]
     replacement_text = label_dict["replacementText"]
@@ -36,6 +43,9 @@ def drawing_labels(Img, label_dict: dict, color: Tuple[int, int, int]):
 
 
 def drawing_arrows(Img, coordinate_list, color: Tuple[int, int, int]):
+    """ 
+    Draws an arrow on an image
+    """
     Img = cv2.polylines(
         Img,
         pts=[np.array(coordinate_list)],
@@ -87,6 +97,9 @@ def drawing_arrow_heads(
 
 
 def drawing_blobs(Img, coordinate_list: list, color: Tuple[int, int, int]):
+    """ 
+    Draws blobs on an image
+    """
     Img = cv2.polylines(
         Img, pts=[np.array(coordinate_list)], isClosed=True, color=color, thickness=1
     )
@@ -102,6 +115,10 @@ def generate_random_color_tupple() -> Tuple[int, int, int]:
 
 
 def full_annotation(annotation_dict: dict, image_path: str, annotated_image_path: str):
+    """ 
+    Iterates through the annotation dictionary and draws the annotations on the image
+    
+    """
     Img_list = [cv2.imread(image_path)]
     label_number = len([annotation_dict["text"].keys()])
     logger.debug(f"Drawing labels: {label_number} ")
@@ -149,6 +166,11 @@ def full_annotation(annotation_dict: dict, image_path: str, annotated_image_path
 
 
 def execute_full_set_annotation(DATA_LIST_PATH: Path, ANNOTATED_IMAGES_FOLDER: Path):
+    """ 
+    full_dict[x][1] = the annotation dictionary for the image
+    full_dict[x][0]["image_path"] = the local image path
+    {ANNOTATED_IMAGES_FOLDER}/{full_dict[x][0]['image_path'].split('/')[-1].split('.')[0]}.png" = The path for the newly created annotated image
+    """
     if not ANNOTATED_IMAGES_FOLDER.exists():
         os.makedirs(ANNOTATED_IMAGES_FOLDER)
     full_dict = json.load(open(DATA_LIST_PATH))

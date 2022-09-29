@@ -101,10 +101,14 @@ AI2 Diagram Dataset (AI2D) was accessed on 9/5/2022 from https://registry.openda
     3. The third object is the entire questions json for that image.
     >TODO: There can be multiple questions per images, so we'll need a function that breaks down this dictionary into a list with each element being a question 
 
-### Models
+`python -m venv .venv`
+`source .venv/bin/activate`
+`pip3 freeze > requirements.txt`
 
-- We should create a standard
-
+`python -m venv .venv`
+`source .venv/bin/activate`
+`pip install --upgrade pip`
+`pip install -r requirements.txt`
 ### Work done so far
 
 - Finished the annotation functions

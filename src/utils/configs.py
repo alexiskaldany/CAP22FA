@@ -15,6 +15,9 @@ SAVED_MODELS_FOLDER = Path(__file__).parent.parent / "models/saved_models"
 
 DATA_JSON = DATA_DIRECTORY / "data_set.json"
 DATA_CSV = DATA_DIRECTORY / "data.csv"
+TRAIN_JSON = DATA_DIRECTORY / "train_set.json"
+VAL_JSON = DATA_DIRECTORY / "val_set.json"
+TEST_JSON = DATA_DIRECTORY / "test_set.json"
 # Constants
 IMAGE_DIMENSIONS = (620, 480)
 ANNOTATION_THICKNESS = int(2)

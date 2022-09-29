@@ -29,7 +29,6 @@ from src.utils.configs import (
     ANNOTATED_IMAGES_FOLDER,
 )
 from src.utils.visual_embeddings import get_multiple_embeddings
-import click
 
 
 @click.command()
