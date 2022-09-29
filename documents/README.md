@@ -25,52 +25,72 @@ Softmax will give relative weights among 4 choices.
 
 ## Multi-Channel Networks
 
-### https://arxiv.org/pdf/1505.00468v6.pdf 
+### <https://arxiv.org/pdf/1505.00468v6.pdf>
 
-1. At 5.2 they describe how they integrate images and questions into a single network 
+1. At 5.2 they describe how they integrate images and questions into a single network
 
 ## Transformers
 
 ### Visual_Bert
-link: https://huggingface.co/docs/transformers/model_doc/visual_bert
 
-https://huggingface.co/docs/transformers/model_doc/visual_bert
+link: <https://huggingface.co/docs/transformers/model_doc/visual_bert>
+
+<https://huggingface.co/docs/transformers/model_doc/visual_bert>
+
+input_ids =(torch.LongTensor of shape (batch_size, num_choices, sequence_length)
+
+attention_mask= (torch.FloatTensor of shape (batch_size, num_choices, sequence_length), optional)
+
+token_type_ids =(torch.LongTensor of shape (batch_size, num_choices, sequence_length), optional)
+
+position_ids=(torch.LongTensor of shape (batch_size, num_choices, sequence_length), optional)
+
+head_mask =(torch.FloatTensor of shape (num_heads,) or (num_layers, num_heads), optional)
+
+inputs_embeds= (torch.FloatTensor of shape (batch_size, num_choices, sequence_length, hidden_size), optional)
+
+visual_embeds (torch.FloatTensor of shape (batch_size, visual_seq_length, visual_embedding_dim), optional)
 
 ### Examples
-How to embed image: https://github.com/huggingface/transformers/blob/main/examples/research_projects/visual_bert/demo.ipynb
 
-more indepth: https://github.com/huggingface/transformers/issues/13151
+How to embed image: <https://github.com/huggingface/transformers/blob/main/examples/research_projects/visual_bert/demo.ipynb>
 
-https://huggingface.co/docs/transformers/main_classes/data_collator
+more indepth: <https://github.com/huggingface/transformers/issues/13151>
+
+<https://huggingface.co/docs/transformers/main_classes/data_collator>
 
 TODO: work through huggingface documentation
 
-https://colab.research.google.com/drive/1bLGxKdldwqnMVA5x4neY7-l_8fKGWQYI?usp=sharing#scrollTo=5KPvzqT6mYJu generating visual embeddings
+<https://colab.research.google.com/drive/1bLGxKdldwqnMVA5x4neY7-l_8fKGWQYI?usp=sharing#scrollTo=5KPvzqT6mYJu> generating visual embeddings
 
 ### CLIP
-- Allows image and text
-https://huggingface.co/docs/transformers/v4.21.3/en/model_doc/clip#usage
+
+* Allows image and text
+<https://huggingface.co/docs/transformers/v4.21.3/en/model_doc/clip#usage>
 
 ### VILT
+
 ViLT incorporates text embeddings into a Vision Transformer (ViT), allowing it to have a minimal design for Vision-and-Language Pre-training (VLP).
-https://huggingface.co/docs/transformers/model_doc/vilt
+<https://huggingface.co/docs/transformers/model_doc/vilt>
 
 ### LayoutMV2
-LayoutLMv2 not only uses the existing masked visual-language modeling task but also the new text-image alignment and text-image matching tasks in the pre-training stage, where cross-modality interaction is better learned. 
-https://huggingface.co/docs/transformers/model_doc/layoutlmv2#transformers.LayoutLMv2ForQuestionAnswering
+
+LayoutLMv2 not only uses the existing masked visual-language modeling task but also the new text-image alignment and text-image matching tasks in the pre-training stage, where cross-modality interaction is better learned.
+<https://huggingface.co/docs/transformers/model_doc/layoutlmv2#transformers.LayoutLMv2ForQuestionAnswering>
 
 ### LayoutMV3
+
 Experimental results show that LayoutLMv3 achieves state-of-the-art performance not only in text-centric tasks, including form understanding, receipt understanding, and document visual question answering, but also in image-centric tasks such as document image classification and document layout analysis.
-https://huggingface.co/docs/transformers/model_doc/layoutlmv3
+<https://huggingface.co/docs/transformers/model_doc/layoutlmv3>
 
 ### LXMERT
-It is a series of bidirectional transformer encoders (one for the vision modality, one for the language modality, and then one to fuse both modalities) pretrained using a combination of masked language modeling, visual-language text alignment, ROI-feature regression, masked visual-attribute modeling, masked visual-object modeling, and visual-question answering objectives. The pretraining consists of multiple multi-modal datasets: MSCOCO, Visual-Genome + Visual-Genome Question Answering, VQA 2.0, and GQA.
-https://huggingface.co/docs/transformers/model_doc/lxmert
 
+It is a series of bidirectional transformer encoders (one for the vision modality, one for the language modality, and then one to fuse both modalities) pretrained using a combination of masked language modeling, visual-language text alignment, ROI-feature regression, masked visual-attribute modeling, masked visual-object modeling, and visual-question answering objectives. The pretraining consists of multiple multi-modal datasets: MSCOCO, Visual-Genome + Visual-Genome Question Answering, VQA 2.0, and GQA.
+<https://huggingface.co/docs/transformers/model_doc/lxmert>
 
 ### Sept 11 Findings
 
-- After converting image to tensor, need to get a flat vector of equal length to tokenized question + possible answers
+* After converting image to tensor, need to get a flat vector of equal length to tokenized question + possible answers
 
 Possible plan:
-1. 
+1.

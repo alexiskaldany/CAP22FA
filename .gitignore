@@ -136,3 +136,4 @@ src/data/
 src/data
 src/.DS_Store
 .DS_Store
+src/models/saved_models/visualbert/runs/

@@ -56,6 +56,22 @@ VAL_JSON = DATA_DIRECTORY / "val_set.json"
 TEST_JSON = DATA_DIRECTORY / "test_set.json"
 IMAGE_DIMENSIONS = (620, 480)
 ANNOTATION_THICKNESS = int(2)
+
+## INPUT DIMS
+BATCH_SIZE = 1
+NUM_CHOICES = 4
+SEQUENCE_LENGTH = 512
+VISUAL_SEQUENCE_LENGTH = 512
+VISUAL_EMBEDDING_SIZE = 512
+##
+INPUT_IDS_DIMS = (BATCH_SIZE,NUM_CHOICES,SEQUENCE_LENGTH)
+ATTENTION_MASK_DIMS = (BATCH_SIZE,NUM_CHOICES,SEQUENCE_LENGTH)
+TOKEN_TYPE_IDS_DIMS = (BATCH_SIZE,NUM_CHOICES,SEQUENCE_LENGTH)
+VISUAL_EMBEDS_DIMS = (BATCH_SIZE,NUM_CHOICES,VISUAL_EMBEDDING_SIZE)
+##
+TRAIN_SPLIT = 0.8
+VAL_SPLIT = 0.1
+TEST_SPLIT = 0.1
 ## Loading the data
 #############################################
 def download_data(DATA_DIRECTORY:Path,ANNOTATED_IMAGES_FOLDER:Path):
@@ -158,12 +174,13 @@ def create_train_val_test_split(
     dataframe: pd.DataFrame, TRAIN_SPLIT: float, VAL_SPLIT: float, TEST_SPLIT: float
 ) -> tuple:
     logger.info("Creating train, val, test split")
-    train_index = int(TRAIN_SPLIT * dataframe.shape[0])
-    val_index = int((TRAIN_SPLIT + VAL_SPLIT) * dataframe.shape[0])
+    train_slice = slice(start=0,stop=int(TRAIN_SPLIT * dataframe.shape[0]))
+    val_slice = slice(start=int(TRAIN_SPLIT * dataframe.shape[0]),stop=int((TRAIN_SPLIT + VAL_SPLIT) * dataframe.shape[0]))             
+    test_slice= slice(start=int((TRAIN_SPLIT + VAL_SPLIT) * dataframe.shape[0]),stop=dataframe.shape[0])
     dataframe = dataframe.sample(frac=1).reset_index(drop=True)
-    train = dataframe.iloc[:train_index, :]
-    val = dataframe.iloc[train_index:val_index, :]
-    test = dataframe.iloc[val_index:, :]
+    train = dataframe.iloc[train_slice]
+    val = dataframe.iloc[val_slice]
+    test = dataframe.iloc[test_slice]
     logger.info(f"Train: {len(train)}")
     logger.info(f"Val: {len(val)}")
     logger.info(f"Test: {len(test)}")
@@ -397,18 +414,19 @@ def get_multiple_embeddings(list_of_images: list):
         tensor = torch.as_tensor(embedding)
         # logger.debug(f"Tensor shape:{tensor.shape}")
         id_embedding_dict[Path(image).name.split(".")[0]] = tensor
+        
         # image.split("/")[-1].split(".")[0]
     return id_embedding_dict
 
 #%%
 ### Starting scripts
-download_data(DATA_DIRECTORY,ANNOTATED_IMAGES_FOLDER)
+# download_data(DATA_DIRECTORY,ANNOTATED_IMAGES_FOLDER)
 data_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER)
 with open(DATA_JSON, "w") as f:
     json.dump(data_list, f)
 # data_set = json.load(open(DATA_JSON))
-dataframe = create_row_per_question_dataframe(data_list)
-dataframe.to_csv(DATA_CSV)
+dataframe = create_row_per_question_dataframe(data_list)[:500]
+# dataframe.to_csv(DATA_CSV)
 # dataframe = pd.read_csv(DATA_CSV)
 execute_full_set_annotation(DATA_JSON, ANNOTATED_IMAGES_FOLDER)
 logger.info("Getting annotated images embeddings")
@@ -422,45 +440,45 @@ annotated_images_embeddings = get_multiple_embeddings(
 )
 # logger.debug(f"Annotated images embeddings:{annotated_images_embeddings.get('235')}")
 annotated_images_embeddings = [
-    v.expand(1, 4, *v.shape) for v in annotated_images_embeddings.values()
+    v.expand(1, 4, 10,512) for v in annotated_images_embeddings.values()
 ]
 raw_images_embeddings = get_multiple_embeddings(dataframe["image_path"].to_list())
 raw_images_embeddings = [
-    x.expand(1, 4, *x.shape) for x in raw_images_embeddings.values()
+    x.expand(1, 4, 10,512) for x in raw_images_embeddings.values()
 ]
 logger.debug(f"Raw images embeddings len:{len(raw_images_embeddings)}")
 logger.debug(f"Annotated images embeddings len:{len(annotated_images_embeddings)}")
 first_raw = raw_images_embeddings[0].shape
 ## Adding the visual embeddings to the dataframe
 #############################################
-for index, row in dataframe.iterrows():
-    if index % 100 == 0:
-        logger.info(f"At index: {index}")
-    img_id = str(row["image_id"])
-    if img_id in annotated_images_embeddings:
-        annotated_list.append(annotated_images_embeddings[img_id])
-    if img_id not in annotated_images_embeddings:
-        annotated_list.append([])
-    if img_id in raw_images_embeddings:
-        raw_list.append(raw_images_embeddings[img_id])
-    if img_id not in raw_images_embeddings:
-        raw_list.append([])
+# for index, row in dataframe.iterrows():
+#     if index % 100 == 0:
+#         logger.info(f"At index: {index}")
+#     img_id = str(row["image_id"])
+#     if img_id in annotated_images_embeddings:
+#         annotated_list.append(annotated_images_embeddings[img_id])
+#     if img_id not in annotated_images_embeddings:
+#         annotated_list.append([])
+#     if img_id in raw_images_embeddings:
+#         raw_list.append(raw_images_embeddings[img_id])
+#     if img_id not in raw_images_embeddings:
+#         raw_list.append([])
 # if dataframe.shape[0] == len(annotated_list):
 #     dataframe["annotated_images_embeddings"] = annotated_list
 # if dataframe.shape[0] == len(raw_list):
 #     dataframe["raw_image_embeddings"] = raw_list
-visual_token_type_ids = [
-    torch.ones(first_raw[:-1], dtype=torch.long) for i in range(dataframe.shape[0])
-]
+# visual_token_type_ids = [
+#     torch.ones(first_raw[:-1], dtype=torch.long) for i in range(dataframe.shape[0])
+# ]
 # dataframe["visual_token_type_ids"] = visual_token_type_ids
-visual_attention_mask = [
-    torch.ones(first_raw[:-1], dtype=torch.float) for i in range(dataframe.shape[0])
-]
+# visual_attention_mask = [
+#     torch.ones(first_raw[:-1], dtype=torch.float) for i in range(dataframe.shape[0])
+# ]
 # dataframe["visual_attention_mask"] = visual_attention_mask
 #%%
 ## Creating the text embeddings
 #############################################
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased",max_model_length=512)
 text_embeddings = []
 for index, row in dataframe.iterrows():
     if index % 100 == 0:
@@ -473,15 +491,16 @@ for index, row in dataframe.iterrows():
         row["list_of_answers"][3],
     ]
     embeds = tokenizer(
-        questions,
-        answers,
-        padding=True,
+        text=questions,
+        text_target=answers,
+        padding='max_length',
         return_tensors="pt",
         truncation=True,
-        max_length=512,
+        max_length=64,
+        
+        
     )
-    #logger.debug(f"Embeds:{type(embeds)}")
-    text_embeddings.append(embeds)
+    text_embeddings.append(embeds['input_ids'].unsqueeze(0))
 
 
 ## Creating the labels
@@ -508,26 +527,27 @@ dataframe["labels"] = dataframe["answer_index"].apply(
     if x == "2"
     else torch.tensor(3).unsqueeze(0)
 )
+labels = dataframe["labels"].to_list()
 # dataframe = dataframe.drop(columns=["Unnamed: 0"])
 
 ## Creating full input dict, organized as a list of dicts
 
-full_input_dict = []
-for index in range(dataframe.shape[0]):
-    if index % 100 == 0:
-        logger.info(f"At index: {index}")
-    full_input_dict.append(
-        {
-            "input_ids": text_embeddings[index]["input_ids"],
-            "token_type_ids": text_embeddings[index]["token_type_ids"],
-            "attention_mask": text_embeddings[index]["attention_mask"],
-            "raw_images_embeddings": raw_images_embeddings[index],
-            "annotated_images_embeddings": annotated_images_embeddings[index],
-            "visual_token_type_ids": visual_token_type_ids[index],
-            "visual_attention_mask": visual_attention_mask[index],
-            "labels": dataframe["labels"][index],
-        }
-    )
+# full_input_dict = []
+# for index in range(dataframe.shape[0]):
+#     if index % 100 == 0:
+#         logger.info(f"At index: {index}")
+#     full_input_dict.append(
+#         {
+#             "input_ids": text_embeddings[index]["input_ids"],
+#             "token_type_ids": text_embeddings[index]["token_type_ids"],
+#             "attention_mask": text_embeddings[index]["attention_mask"],
+#             "raw_images_embeddings": raw_images_embeddings[index],
+#             "annotated_images_embeddings": annotated_images_embeddings[index],
+#             "visual_token_type_ids": visual_token_type_ids[index],
+#             "visual_attention_mask": visual_attention_mask[index],
+#             "labels": dataframe["labels"][index],
+#         }
+#     )
 # with open(FULL_INPUT_DICT_JSON, "w") as f:
 #     json.dump(full_input_dict, f)
 
@@ -541,22 +561,34 @@ dataframe = pd.read_csv(FINISHED_DATA_CSV)
 
 ## Creating train,val and test sets
 #############################################
-train, val, test = create_train_val_test_split(dataframe, 0.8, 0.1, 0.1)
+# train, val, test = create_train_val_test_split(dataframe, 0.8, 0.1, 0.1)
+train_slice = slice(0,int(TRAIN_SPLIT * dataframe.shape[0]))
+val_slice = slice(int(TRAIN_SPLIT * dataframe.shape[0]),int((TRAIN_SPLIT + VAL_SPLIT) * dataframe.shape[0]))             
+test_slice= slice(int((TRAIN_SPLIT + VAL_SPLIT) * dataframe.shape[0]),dataframe.shape[0])
 ## Creating input list
 #############################################
-training_input_dict = []
-for index in range(train.shape[0]):
-    training_input_dict.append(
-        {
-            "input_ids": full_input_dict[index]["input_ids"],
-            "token_type_ids": full_input_dict[index]["token_type_ids"],
-            "attention_mask": full_input_dict[index]["attention_mask"],
-            "visual_embeds": full_input_dict[index]["annotated_images_embeddings"],
-            "visual_token_type_ids": full_input_dict[index]["visual_token_type_ids"],
-            "visual_attention_mask": full_input_dict[index]["visual_attention_mask"],
-            "labels": full_input_dict[index]["labels"],
-        }
-    )
+#%%
+training_input_dict = {"input_ids": text_embeddings[train_slice],"visual_embeds":annotated_images_embeddings[train_slice]}
+# training_input_record = pd.DataFrame.from_dict(training_input_dict)
+#,"labels":labels[train_slice]
+val_input_dict = {"input_ids": text_embeddings[val_slice],"visual_embeds":annotated_images_embeddings[val_slice]}
+
+#,"labels":labels[val_slice]
+test_input_dict = {"input_ids":text_embeddings[test_slice],"visual_embeds":annotated_images_embeddings[test_slice]}
+
+#,"labels":labels[test_slice]
+# for index in range(train.shape[0]):
+#     training_input_dict.append(
+#         {
+#             "input_ids": full_input_dict[index]["input_ids"],
+#             "token_type_ids": full_input_dict[index]["token_type_ids"],
+#             "attention_mask": full_input_dict[index]["attention_mask"],
+#             "visual_embeds": full_input_dict[index]["annotated_images_embeddings"],
+#             "visual_token_type_ids": full_input_dict[index]["visual_token_type_ids"],
+#             "visual_attention_mask": full_input_dict[index]["visual_attention_mask"],
+#             "labels": full_input_dict[index]["labels"],
+#         }
+#     )
 # for index in range(train.shape[0]):
 #     row = train.iloc[index]
 #     training_input_dict.append(
@@ -570,20 +602,20 @@ for index in range(train.shape[0]):
 #             "labels": row["labels"][0].tolist(),
 #         }
 #     )
-validation_input_dict = []
-for index in range(val.shape[0]):
-    index = index + train.shape[0]
-    validation_input_dict.append(
-        {
-            "input_ids": full_input_dict[index]["input_ids"],
-            "token_type_ids": full_input_dict[index]["token_type_ids"],
-            "attention_mask": full_input_dict[index]["attention_mask"],
-            "visual_embeds": full_input_dict[index]["annotated_images_embeddings"],
-            "visual_token_type_ids": full_input_dict[index]["visual_token_type_ids"],
-            "visual_attention_mask": full_input_dict[index]["visual_attention_mask"],
-            "labels": full_input_dict[index]["labels"],
-        }
-    )
+# validation_input_dict = []
+# for index in range(val.shape[0]):
+#     index = index + train.shape[0]
+#     validation_input_dict.append(
+#         {
+#             "input_ids": full_input_dict[index]["input_ids"],
+#             "token_type_ids": full_input_dict[index]["token_type_ids"],
+#             "attention_mask": full_input_dict[index]["attention_mask"],
+#             "visual_embeds": full_input_dict[index]["annotated_images_embeddings"],
+#             "visual_token_type_ids": full_input_dict[index]["visual_token_type_ids"],
+#             "visual_attention_mask": full_input_dict[index]["visual_attention_mask"],
+#             "labels": full_input_dict[index]["labels"],
+#         }
+#     )
     # row = val.iloc[index]
     # validation_input_dict.append(
     #     {
@@ -597,20 +629,20 @@ for index in range(val.shape[0]):
     #     }
     # )
 
-test_input_dict = []
-for index in range(test.shape[0]):
-    index = index + train.shape[0] + val.shape[0]
-    test_input_dict.append(
-        {
-            "input_ids": full_input_dict[index]["input_ids"],
-            "token_type_ids": full_input_dict[index]["token_type_ids"],
-            "attention_mask": full_input_dict[index]["attention_mask"],
-            "visual_embeds": full_input_dict[index]["raw_images_embeddings"],
-            "visual_token_type_ids": full_input_dict[index]["visual_token_type_ids"],
-            "visual_attention_mask": full_input_dict[index]["visual_attention_mask"],
-            "labels": full_input_dict[index]["labels"],
-        }
-    )
+# test_input_dict = []
+# for index in range(test.shape[0]):
+#     index = index + train.shape[0] + val.shape[0]
+#     test_input_dict.append(
+#         {
+#             "input_ids": full_input_dict[index]["input_ids"],
+#             "token_type_ids": full_input_dict[index]["token_type_ids"],
+#             "attention_mask": full_input_dict[index]["attention_mask"],
+#             "visual_embeds": full_input_dict[index]["raw_images_embeddings"],
+#             "visual_token_type_ids": full_input_dict[index]["visual_token_type_ids"],
+#             "visual_attention_mask": full_input_dict[index]["visual_attention_mask"],
+#             "labels": full_input_dict[index]["labels"],
+#         }
+#     )
     # row = test.iloc[index]
     # test_input_dict.append(
     # {
@@ -642,23 +674,23 @@ for index in range(test.shape[0]):
 #     test_input_list = json.load(f)
 ## Creating datasets
 #############################################
-train_dataset = torch.utils.data.DataLoader(
-    training_input_dict,
-    batch_size=1,
-    shuffle=True,
-).dataset
-val_dataset = torch.utils.data.DataLoader(
-    validation_input_dict, batch_size=1, shuffle=True
-).dataset
-test_dataset = torch.utils.data.DataLoader(
-    test_input_dict, batch_size=1, shuffle=True
-).dataset
-print("Train dataset length: ", len(train_dataset))
+#%%
+# train_dataset = torch.utils.data.DataLoader(
+#     training_input_dict,
+#     batch_size=1,
+#     shuffle=True,
+# )
+# val_dataset = torch.utils.data.DataLoader(
+#     val_input_dict, batch_size=1, shuffle=True
+# ).dataset
+# test_dataset = torch.utils.data.DataLoader(
+#     test_input_dict, batch_size=1, shuffle=True
+# ).dataset
+# print("Train dataset length: ", len(train_dataset))
 # shapes = [x[0].shape for x in train_dataset[0].values() if isinstance(x, list)]
 # print("Train dataset shapes: ", shapes)
-first_level =[[(x,y.shape) for y in train_dataset[0][x]] for x in train_dataset[0].keys()]
-with open(DATA_DIRECTORY/"first_level.txt", "w") as f:
-    f.write(str(first_level))
+# first_level =[[(x,y.shape) for y in train_dataset[0][x]] for x in train_dataset[0].keys()]
+
 #%%
 ## Loading the model
 #############################################
@@ -666,19 +698,18 @@ model = VisualBertForMultipleChoice.from_pretrained(
     "uclanlp/visualbert-vqa", ignore_mismatched_sizes=True
 )
 
-
 training_args = TrainingArguments(
     output_dir=str(SAVED_MODELS_FOLDER) + "/visualbert",
     do_train=True,
     do_eval=True,
     do_predict=True,
     overwrite_output_dir=True,
-    num_train_epochs=1,
-    per_device_train_batch_size=64,
-    save_steps=10_000,
-    save_total_limit=2,
+    num_train_epochs=3,
+    per_device_train_batch_size=8,
+    # save_steps=10_000,
+    # save_total_limit=8,
     prediction_loss_only=True,
-    learning_rate=1e-5,
+    learning_rate=1e-3,
 )
 try:
     trainer = Trainer(
@@ -687,9 +718,12 @@ try:
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
         compute_metrics=True,
+        
     )
     trainer.train()
     trainer.evaluate()
     trainer.predict(test_dataset)
 except Exception as e:
-    print(e)
+    logger.exception(e)
+
+# %%
