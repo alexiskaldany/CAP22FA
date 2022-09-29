@@ -21,7 +21,7 @@ logger.remove()
 logger.add(
     sys.stdout,
     format="<light-yellow>{time:YYYY-MM-DD HH:mm:ss}</light-yellow> | <light-blue>{level}</light-blue> | <cyan>{message}</cyan> | <light-red>{function}: {line}</light-red>",
-    level="DEBUG",
+    level="INFO",
     backtrace=True,
     colorize=True,
 )
@@ -29,11 +29,20 @@ logger.add(
 ## Constants
 #############################################
 # Internal Directories and Folders
+
 DATA_DIRECTORY = Path(__file__).parent.parent / "data"
+AI2D_FOLDER = DATA_DIRECTORY / "ai2d"
 ANNOTATION_FOLDER = DATA_DIRECTORY / "ai2d" / "annotations"
+os.system(f"rm {DATA_DIRECTORY}")
+if not DATA_DIRECTORY.exists(): 
+    os.makedirs(DATA_DIRECTORY)
+if not AI2D_FOLDER.exists():
+    os.makedirs(AI2D_FOLDER)
 IMAGES_FOLDER = DATA_DIRECTORY / "ai2d" / "images"
 QUESTIONS_FOLDER = DATA_DIRECTORY / "ai2d" / "questions"
 ANNOTATED_IMAGES_FOLDER = DATA_DIRECTORY / "ai2d" / "annotated_images"
+if not ANNOTATED_IMAGES_FOLDER.exists():
+    os.makedirs(ANNOTATED_IMAGES_FOLDER)
 if ANNOTATED_IMAGES_FOLDER.exists() == False:
     os.mkdir(ANNOTATED_IMAGES_FOLDER)
 RUNS_FOLDER = Path(__file__).parent.parent / "runs"
@@ -49,6 +58,28 @@ IMAGE_DIMENSIONS = (620, 480)
 ANNOTATION_THICKNESS = int(2)
 ## Loading the data
 #############################################
+def download_data(DATA_DIRECTORY:Path,ANNOTATED_IMAGES_FOLDER:Path):
+    """
+    Creates needed folders then downloads, unzips and deletes the zip file
+    """
+    try:
+        logger.info("Downloading the data")
+        install_aws = f"sudo apt-get install awscli"
+        os.system(install_aws)
+        download_command = f"aws s3 cp --no-sign-request s3://ai2-public-datasets/diagrams/ai2d-all.zip {DATA_DIRECTORY}"
+        os.system(download_command)
+        logger.info("Completed downloading the data")
+        logger.info("Unzipping the data")
+        os.system(f"unzip {DATA_DIRECTORY}/ai2d-all.zip -d {DATA_DIRECTORY}")
+        logger.info("Completed unzipping the data")
+        logger.info("Deleting the zip file")
+        os.system(f"rm {DATA_DIRECTORY}/ai2d-all.zip && rm {DATA_DIRECTORY}/__MACOSX -rf")
+        print("Download and cleanup complete")
+        return True
+    except Exception as e:
+        logger.error(f"Error in downloading the data: {e}")
+        return False
+
 def get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER) -> list:
     """
     Takes in the annotation, images and questions folder and returns a list of dictionaries
@@ -93,7 +124,6 @@ def get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER) -> list
         temp_list = [image_dict, annotation_dict, question_dict]
         data_list.append(temp_list)
     return data_list
-
 
 def create_row_per_question_dataframe(data_list: list) -> pd.DataFrame:
     """
@@ -324,12 +354,6 @@ def execute_full_set_annotation(DATA_LIST_PATH: Path, ANNOTATED_IMAGES_FOLDER: P
     ]
     return annotated_image_paths
 
-
-# execute_full_set_annotation(DATA_JSON, ANNOTATED_IMAGES_FOLDER)
-
-# id_list = list(dataframe["image_id"])
-# annotated_image_path = [str(ANNOTATED_IMAGES_FOLDER / f"{id}.png") for id in id_list]
-# dataframe["annotated_image_path"] = annotated_image_path
 ## Getting Visual Embeddings
 #############################################
 from torchvision.models.resnet import resnet18 as _resnet18
@@ -378,6 +402,7 @@ def get_multiple_embeddings(list_of_images: list):
 
 #%%
 ### Starting scripts
+download_data(DATA_DIRECTORY,ANNOTATED_IMAGES_FOLDER)
 data_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER)
 with open(DATA_JSON, "w") as f:
     json.dump(data_list, f)
@@ -385,7 +410,7 @@ with open(DATA_JSON, "w") as f:
 dataframe = create_row_per_question_dataframe(data_list)
 dataframe.to_csv(DATA_CSV)
 # dataframe = pd.read_csv(DATA_CSV)
-
+execute_full_set_annotation(DATA_JSON, ANNOTATED_IMAGES_FOLDER)
 logger.info("Getting annotated images embeddings")
 id_list = list(dataframe["image_id"])
 annotated_image_path = [str(ANNOTATED_IMAGES_FOLDER / f"{id}.png") for id in id_list]

@@ -105,10 +105,12 @@ AI2 Diagram Dataset (AI2D) was accessed on 9/5/2022 from https://registry.openda
 `source .venv/bin/activate`
 `pip3 freeze > requirements.txt`
 
-`python -m venv .venv`
-`source .venv/bin/activate`
-`pip install --upgrade pip`
-`pip install -r requirements.txt`
+``` bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 ### Work done so far
 
 - Finished the annotation functions
