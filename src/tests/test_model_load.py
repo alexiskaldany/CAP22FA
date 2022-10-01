@@ -32,7 +32,7 @@ data_df = create_dataframe(combined_list)
 # Assumption: *get_visual_embeddings(image)* gets the visual embeddings of the image in the batch.
 from transformers import BertTokenizer, VisualBertForQuestionAnswering, VisualBertForMultipleChoice
 from transformers import VisualBertModel, VisualBertConfig
-import torch
+import torch, gc
 
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 # model = VisualBertForMultipleChoice.from_pretrained("uclanlp/visualbert-vcr")
@@ -137,10 +137,9 @@ print(tokenizer.decode(inputs_dict['input_ids'][0][0]))
 print(tokenizer.decode(inputs_dict['input_ids'][0][1]))
 print(tokenizer.decode(inputs_dict['input_ids'][0][2]))
 print(tokenizer.decode(inputs_dict['input_ids'][0][3]))
-print(inputs_dict['input_ids'])
-print(inputs_dict['input_ids'][0].shape)
+print(inputs_dict['input_ids'][0])
+# print(inputs_dict['input_ids'][0].shape)
 
-# Check sizes of all of these inputs!!
 
 inputs_dict.update(
 {
@@ -151,9 +150,155 @@ inputs_dict.update(
     }
 )
 
-print(inputs_dict)
+# Check sizes of all of these inputs against the demo one!! + is it actually working?
+# try unsqueexing input ids to diff dim does it still run through?
+# https://github.com/huggingface/transformers/blob/main/examples/pytorch/multiple-choice/run_swag.py
+# https://github.com/huggingface/notebooks/blob/main/examples/multiple_choice.ipynb
+print(inputs_dict['input_ids'].shape)
+print(inputs_dict['visual_embeds'].shape)
+print(inputs_dict['visual_attention_mask'].shape)
+print(inputs_dict['visual_token_type_ids'].shape)
+print(inputs_dict['labels'].shape)
+print(inputs_dict.keys())
+
+# Inference
 outputs = model(**inputs_dict)
 loss = outputs.loss
 logits = outputs.logits
+print(logits)
 print(logits.argmax(-1))
 print(answer_choices[logits.argmax(-1)])
+
+# Training Iteration
+# Optimizer and Learning Rate Scheduler
+from torch.optim import AdamW
+from transformers import get_scheduler
+from tqdm.auto import tqdm
+import time
+import math
+
+lr=5e-5
+num_epochs = 1
+sample_every = 1
+
+optimizer = AdamW(model.parameters(), lr=lr)
+
+num_epochs = num_epochs
+# num_training_steps = num_epochs * len(train_data_loader)
+num_training_steps = num_epochs * 1
+lr_scheduler = get_scheduler(name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps)
+
+model.resize_token_embeddings(len(tokenizer))
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+print('Using device..', device)
+# if LOG_FILENAME:
+#     MY_LOGGER.info(f"{datetime.now()} -- [LanguageModel Training] Using device {device}...")	
+
+model.to(device)
+
+progress_bar = tqdm(range(num_training_steps))
+
+total_t0 = time.time()
+training_stats = []
+sample_every = sample_every
+
+gc.collect()
+torch.cuda.empty_cache()
+
+for epoch in range(num_epochs):
+    print("")
+    print('======== Epoch {:} / {:} ========'.format(epoch + 1, num_epochs))
+    print(f'Training {model._get_name()}...')
+    # if LOG_FILENAME:
+    #     MY_LOGGER.info(f"{datetime.now()} -- [LanguageModel Training] \n======== Epoch {epoch + 1} / {num_epochs} ========")	
+    #     MY_LOGGER.info(f"{datetime.now()} -- [LanguageModel Training] Training... {gpt_model_type}")	
+    
+    total_train_loss = 0
+    total_train_accuracy = 0
+
+    t0 = time.time()
+    model.train()
+
+    for step, batch in enumerate([inputs_dict]):
+        print(batch)
+        # dict_keys(['input_ids', 'token_type_ids', 'attention_mask', 'visual_embeds', 'visual_attention_mask', 'visual_token_type_ids', 'labels'])
+        b_input_ids = batch['input_ids'].to(device)
+        b_token_type_ids = batch['token_type_ids'].to(device)
+        b_attention_mask = batch['attention_mask'].to(device)
+
+        b_labels = batch['labels'].to(device)
+
+        b_visual_embeds = batch['visual_embeds'].to(device)
+        b_visual_attention_mask = batch['visual_attention_mask'].to(device)
+        b_visual_token_type_ids = batch['visual_token_type_ids'].to(device)
+
+        model.zero_grad()        
+
+        outputs = model(input_ids=b_input_ids, attention_mask=b_attention_mask, token_type_ids=b_token_type_ids,
+                        visual_embeds=b_visual_embeds, visual_attention_mask=b_visual_attention_mask, visual_token_type_ids=b_visual_token_type_ids,
+                        labels = b_labels
+        )
+
+        loss = outputs[0]
+
+        # outputs = model(**inputs_dict)
+        # loss = outputs.loss
+        # logits = outputs.logits
+
+        batch_loss = loss.item()
+        # batch_perplexity = math.exp(batch_loss)
+        
+        total_train_loss += batch_loss
+
+        print('LOSS: ', loss, batch_loss, total_train_loss)
+        # total_train_perplexity += batch_perplexity
+            
+        # # Get sample every x batches.
+        # if step % sample_every == 0 and not step == 0:
+
+        #     elapsed = format_time(time.time() - t0)
+        #     print('  Batch {:>5,}  of  {:>5,}. Loss: {:>5,}.   Elapsed: {:}.'.format(step, len(train_data_loader), batch_loss, elapsed))
+        #     if LOG_FILENAME:
+        #         MY_LOGGER.info(f"{datetime.now()} -- [LanguageModel Training]   Batch {step}  of  {len(train_data_loader)}. Loss: {batch_loss}.   Elapsed: {elapsed}.")	
+
+        #     if eval_during_training:
+        #         model.eval()
+
+        #         sample_outputs = model.generate(
+        #                                 bos_token_id=random.randint(1,30000),
+        #                                 do_sample=True,   
+        #                                 top_k=50, 
+        #                                 max_length = 200,
+        #                                 top_p=0.95, 
+        #                                 num_return_sequences=1,
+        #                                 no_repeat_ngram_size=2,
+        #                                 early_stopping=True
+        #                             )
+        #         for i, sample_output in enumerate(sample_outputs):
+        #             print("{}: {}".format(i, tokenizer.decode(sample_output, skip_special_tokens=True)))
+        #             if LOG_FILENAME:
+        #                 MY_LOGGER.info(f"{datetime.now()} -- [LanguageModel Training] {i}: {tokenizer.decode(sample_output, skip_special_tokens=True)}")	
+                
+                # model.train()
+
+        loss.backward()
+        optimizer.step()
+        lr_scheduler.step()
+        progress_bar.update(1)
+
+    # Calculate the average loss over all of the batches.
+    # avg_train_loss = total_train_loss / len(train_data_loader)       
+    # avg_train_perplexity = total_train_perplexity / len(train_data_loader)       
+
+    # # Measure how long this epoch took.
+    # training_time = format_time(time.time() - t0)
+
+    # print("")
+    # print("  Average training loss: {0:.2f}".format(avg_train_loss))
+    # print("  Average training perplexity: {0:.2f}".format(avg_train_perplexity))
+    # print("  Training epoch took: {:}".format(training_time))
+    # if LOG_FILENAME:
+    #     MY_LOGGER.info(f"{datetime.now()} -- [LanguageModel Training]\n  Average training loss: {avg_train_loss}")	
+    #     MY_LOGGER.info(f"{datetime.now()} -- [LanguageModel Training]\n  Average training perplexity: {avg_train_perplexity}")	
+    #     MY_LOGGER.info(f"{datetime.now()} -- [LanguageModel Training]  Training epoch took: {training_time}")
