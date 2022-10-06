@@ -4,6 +4,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 nohup.out
+*.bin
+*ignore*
 
 # C extensions
 *.so

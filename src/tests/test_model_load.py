@@ -8,6 +8,15 @@ from loguru import logger
 import os
 import sys
 import cv2
+from transformers import BertTokenizer, VisualBertForQuestionAnswering, VisualBertForMultipleChoice
+from transformers import VisualBertModel, VisualBertConfig
+import torch, gc
+from torch.optim import AdamW
+from transformers import get_scheduler
+from tqdm.auto import tqdm
+import time
+import math
+from test_custom_dataloader import CustomDataLoaderVisualBERT
 
 # get current directory
 path = os.getcwd()
@@ -30,9 +39,6 @@ data_df = create_dataframe(combined_list)
 1. Test VisualBERT
 '''
 # Assumption: *get_visual_embeddings(image)* gets the visual embeddings of the image in the batch.
-from transformers import BertTokenizer, VisualBertForQuestionAnswering, VisualBertForMultipleChoice
-from transformers import VisualBertModel, VisualBertConfig
-import torch, gc
 
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 # model = VisualBertForMultipleChoice.from_pretrained("uclanlp/visualbert-vcr")
@@ -161,6 +167,9 @@ print(inputs_dict['visual_token_type_ids'].shape)
 print(inputs_dict['labels'].shape)
 print(inputs_dict.keys())
 
+'''
+Test Inference
+'''
 # Inference
 outputs = model(**inputs_dict)
 loss = outputs.loss
@@ -169,14 +178,11 @@ print(logits)
 print(logits.argmax(-1))
 print(answer_choices[logits.argmax(-1)])
 
+'''
+Test Training Loop
+'''
 # Training Iteration
 # Optimizer and Learning Rate Scheduler
-from torch.optim import AdamW
-from transformers import get_scheduler
-from tqdm.auto import tqdm
-import time
-import math
-
 lr=5e-5
 num_epochs = 1
 sample_every = 1
@@ -232,6 +238,14 @@ for epoch in range(num_epochs):
         b_visual_embeds = batch['visual_embeds'].to(device)
         b_visual_attention_mask = batch['visual_attention_mask'].to(device)
         b_visual_token_type_ids = batch['visual_token_type_ids'].to(device)
+
+        print(b_input_ids.shape)
+        print(b_token_type_ids.shape)
+        print(b_attention_mask.shape)
+        print(b_labels.shape)
+        print(b_visual_embeds.shape)
+        print(b_visual_attention_mask.shape)
+        print(b_visual_token_type_ids.shape)
 
         model.zero_grad()        
 
