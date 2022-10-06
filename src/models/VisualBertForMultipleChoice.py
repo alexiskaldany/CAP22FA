@@ -1,6 +1,6 @@
 #%%
 from pathlib import Path
-from transformers import BertTokenizer, VisualBertForMultipleChoice
+from transformers import BertTokenizer, VisualBertForMultipleChoice, VisualBertConfig
 from transformers import Trainer, TrainingArguments
 import torch
 from torchvision import datasets, transforms
@@ -25,9 +25,9 @@ logger.add(
     backtrace=True,
     colorize=True,
 )
-GPU=torch.cuda.is_available()
-print(f"GPU: {GPU}")
-torch.cuda.init()
+# GPU=torch.cuda.is_available()
+# print(f"GPU: {GPU}")
+# torch.cuda.init()
 
 ## Constants
 #############################################
@@ -64,8 +64,9 @@ ANNOTATION_THICKNESS = int(2)
 BATCH_SIZE = 1
 NUM_CHOICES = 4
 SEQUENCE_LENGTH = 20
-VISUAL_SEQUENCE_LENGTH = 9
+VISUAL_SEQUENCE_LENGTH = 64
 VISUAL_EMBEDDING_SIZE = 512
+MAX_TOKEN_LENGTH = 64
 ##
 INPUT_IDS_DIMS = (BATCH_SIZE, NUM_CHOICES, SEQUENCE_LENGTH)
 ATTENTION_MASK_DIMS = (BATCH_SIZE, NUM_CHOICES, SEQUENCE_LENGTH)
@@ -440,6 +441,7 @@ def get_multiple_embeddings(list_of_images: list):
     id_embedding_dict = {}
     # image_embedding_model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', weights=models.ResNet18_Weights.DEFAULT')
     image_embedding_model = _resnet18(weights="DEFAULT")
+    image_embedding_model = torch.nn.Sequential(*(list(model.children())[:-2]))
     layer = image_embedding_model._modules.get("avgpool")
     _ = layer.register_forward_hook(copy_embeddings)
     image_embedding_model.eval()
@@ -458,7 +460,6 @@ def get_multiple_embeddings(list_of_images: list):
     return id_embedding_dict
 
 
-
 ### Starting scripts
 # download_data(DATA_DIRECTORY,ANNOTATED_IMAGES_FOLDER)
 data_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER)
@@ -469,12 +470,18 @@ dataframe = create_row_per_question_dataframe(data_list)[:100]
 
 # dataframe.to_csv(DATA_CSV)
 # dataframe = pd.read_csv(DATA_CSV)
-annotated_image_paths = execute_full_set_annotation(
-    DATA_JSON, ANNOTATED_IMAGES_FOLDER
+# annotated_image_paths = execute_full_set_annotation(
+#     DATA_JSON, ANNOTATED_IMAGES_FOLDER
+# )
+annotated_image_paths = [
+    f"{ANNOTATED_IMAGES_FOLDER}/{data_list[x][0]['image_path'].split('/')[-1].split('.')[0]}.png"
+    for x in range(len(data_list))
+]
+annotated_image_paths_dict = {Path(str(x)).name[:-4]: x for x in annotated_image_paths}
+
+dataframe["annotated_image_path"] = dataframe["image_id"].apply(
+    lambda x: annotated_image_paths_dict[x]
 )
-annotated_image_paths_dict = {Path(str(x)).name[:-4]:x for x in annotated_image_paths}
-print(annotated_image_paths_dict.items())
-dataframe["annotated_image_path"] = dataframe["image_id"].apply(lambda x: annotated_image_paths_dict[x])
 annotated_list = []
 raw_list = []
 annotated_images_embeddings = get_multiple_embeddings(
@@ -482,17 +489,20 @@ annotated_images_embeddings = get_multiple_embeddings(
 )
 
 annotated_images_embeddings_dict = {
-    k:v.expand(BATCH_SIZE, NUM_CHOICES, VISUAL_SEQUENCE_LENGTH, VISUAL_EMBEDDING_SIZE)
+    k: v.expand(BATCH_SIZE, NUM_CHOICES, VISUAL_SEQUENCE_LENGTH, VISUAL_EMBEDDING_SIZE)
     for k, v in annotated_images_embeddings.items()
 }
-dataframe['annotated_images_embeddings'] = [annotated_images_embeddings_dict[k] for k in dataframe['image_id'].to_list()]
+dataframe["annotated_images_embeddings"] = [
+    annotated_images_embeddings_dict[k] for k in dataframe["image_id"].to_list()
+]
 raw_images_embeddings = get_multiple_embeddings(dataframe["image_path"].to_list())
 raw_images_embeddings_dict = {
-    k:v.expand(BATCH_SIZE, NUM_CHOICES, VISUAL_SEQUENCE_LENGTH, VISUAL_EMBEDDING_SIZE)
+    k: v.expand(BATCH_SIZE, NUM_CHOICES, VISUAL_SEQUENCE_LENGTH, VISUAL_EMBEDDING_SIZE)
     for k, v in raw_images_embeddings.items()
 }
-dataframe['raw_images_embeddings'] = [raw_images_embeddings_dict[k] for k in dataframe['image_id'].to_list()]
-
+dataframe["raw_images_embeddings"] = [
+    raw_images_embeddings_dict[k] for k in dataframe["image_id"].to_list()
+]
 
 
 ## Adding the visual embeddings to the dataframe
@@ -524,7 +534,9 @@ dataframe['raw_images_embeddings'] = [raw_images_embeddings_dict[k] for k in dat
 #
 ## Creating the text embeddings
 #############################################
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", max_model_length=32)
+tokenizer = BertTokenizer.from_pretrained(
+    "bert-base-uncased", max_model_length=MAX_TOKEN_LENGTH
+)
 text_embeddings = []
 for index, row in dataframe.iterrows():
     if index % 100 == 0:
@@ -548,7 +560,14 @@ for index, row in dataframe.iterrows():
 dataframe["text_embeddings"] = text_embeddings
 #%%
 dataframe = dataframe.sample(frac=1).reset_index(drop=True)
-input_df = dataframe[["annotated_images_embeddings", "raw_images_embeddings","text_embeddings","labels"]]
+input_df = dataframe[
+    [
+        "annotated_images_embeddings",
+        "raw_images_embeddings",
+        "text_embeddings",
+        "labels",
+    ]
+]
 print(input_df.dtypes)
 
 
@@ -624,9 +643,39 @@ input_df.to_csv(FINISHED_DATA_CSV)
 ## Creating input list
 #############################################
 
-training_input_dict = input_df[train_slice].rename(columns={'annotated_images_embeddings':'visual_embeds',"text_embeddings":"input_ids"}).drop(columns=['raw_images_embeddings']).to_dict(orient="records")
-val_input_dict = input_df[val_slice].rename(columns={'annotated_images_embeddings':'visual_embeds',"text_embeddings":"input_ids"}).drop(columns=['raw_images_embeddings']).to_dict(orient="records")
-test_input_dict = input_df[test_slice].rename(columns={'raw_images_embeddings':'visual_embeds',"text_embeddings":"input_ids"}).drop(columns=['annotated_images_embeddings']).to_dict(orient="records")
+training_input_dict = (
+    input_df[train_slice]
+    .rename(
+        columns={
+            "annotated_images_embeddings": "visual_embeds",
+            "text_embeddings": "input_ids",
+        }
+    )
+    .drop(columns=["raw_images_embeddings"])
+    .to_dict(orient="records")
+)
+val_input_dict = (
+    input_df[val_slice]
+    .rename(
+        columns={
+            "annotated_images_embeddings": "visual_embeds",
+            "text_embeddings": "input_ids",
+        }
+    )
+    .drop(columns=["raw_images_embeddings"])
+    .to_dict(orient="records")
+)
+test_input_dict = (
+    input_df[test_slice]
+    .rename(
+        columns={
+            "raw_images_embeddings": "visual_embeds",
+            "text_embeddings": "input_ids",
+        }
+    )
+    .drop(columns=["annotated_images_embeddings"])
+    .to_dict(orient="records")
+)
 # ,"labels":labels[test_slice]
 # for index in range(train.shape[0]):
 #     training_input_dict.append(
@@ -757,11 +806,16 @@ Below lets make an index style input and see if that works.
 #     json.load(open(DATA_JSON, "r"))
 # ).to_dict(orient="index")
 # print(question_json[0].values())
-#%%
+
 #############################################
-model = VisualBertForMultipleChoice.from_pretrained(
-    "uclanlp/visualbert-vqa", ignore_mismatched_sizes=True
+configuration = VisualBertConfig.from_pretrained(
+    "uclanlp/visualbert-vqa",
+    intermediate_size=1024,
+    num_choices=4,
+    hidden_size=512,
+    num_attention_heads=8,
 )
+model = VisualBertForMultipleChoice(configuration)
 
 training_args = TrainingArguments(
     output_dir=str(SAVED_MODELS_FOLDER) + "/visualbert",
