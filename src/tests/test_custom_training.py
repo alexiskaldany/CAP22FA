@@ -115,8 +115,8 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
 								model_type='visualbert',
                                 log_file=logger)
 
-model_visualbert.train(num_epochs=2, model_weights_dir='./results/model_weights/visualbert_2epochs/')
-model_visualbert.get_training_stats(model_weights_dir='./results/model_weights/visualbert_2epochs/training_stats.csv')
+model_visualbert.train(num_epochs=3, model_weights_dir='./results/model_weights/visualbert_3epochs_test01/')
+model_visualbert.get_training_stats(model_weights_dir='./results/model_weights/visualbert_3epochs_test01/training_stats.csv')
 
 '''
 Inference Test
