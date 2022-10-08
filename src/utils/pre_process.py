@@ -14,6 +14,7 @@ import torch
 from src.utils.configs import *
 import random
 from loguru import logger
+
 """ 
 Data
 """
@@ -116,16 +117,27 @@ Loading Questions and Answers
 
 # TRAIN,VAL,TEST 
 
-def create_train_val_test_split(data_list):
+def create_train_val_test_split(data_df):
+    '''
+    Params:
+        data_df (pandas dataframe): dataframe of full dataset to split 
+    Returns:
+        train_df (pandas dataframe): dataframe of split train dataset
+        val_df (pandas dataframe): dataframe of split val dataset
+        test_df (pandas dataframe): dataframe of split test dataset
+    '''
     logger.info("Creating train, val, test split")
-    train_index = int(0.7 * len(data_list))
-    val_index = int(0.9 * len(data_list))
-    random.shuffle(data_list)
-    train = data_list[:train_index]
-    val = data_list[train_index:val_index]
-    test = data_list[val_index:]
-    logger.info(f"Train: {len(train)}")
-    logger.info(f"Val: {len(val)}")
-    logger.info(f"Test: {len(test)}")
-    return train,val,test
+    train_index = int(0.7 * len(data_df))
+    val_index = int(0.9 * len(data_df))
+    data_df_shuffled = data_df.sample(frac = 1, random_state=RANDOM_STATE)
+
+    train_df = data_df_shuffled.iloc[:train_index]
+    val_df = data_df_shuffled.iloc[train_index:val_index]
+    test_df = data_df_shuffled.iloc[val_index:]
+    
+    logger.info(f"Train: {len(train_df)}")
+    logger.info(f"Val: {len(val_df)}")
+    logger.info(f"Test: {len(test_df)}")
+
+    return train_df, val_df, test_df
 

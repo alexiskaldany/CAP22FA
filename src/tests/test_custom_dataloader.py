@@ -75,6 +75,8 @@ class CustomDataLoaderVisualBERT(CustomDataLoader):
 
     def __getitem__(self, idx):
         '''
+        Builds text and visual embeddings from data
+
         Params:
             self: instance of object
             idx (int): index of iteration
