@@ -22,19 +22,19 @@ img_bgr1 = cv2.cvtColor(img1, cv2.COLOR_RGB2BGR)
 
 cfg_path = "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml"
 
-def load_config_and_model_weights(cfg_path):
-    cfg = dt.setup_environment.get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file(cfg_path))
+# def load_config_and_model_weights(cfg_path):
+#     cfg = dt.setup_environment.get_cfg()
+#     cfg.merge_from_file(model_zoo.get_config_file(cfg_path))
 
-    # ROI HEADS SCORE THRESHOLD
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+#     # ROI HEADS SCORE THRESHOLD
+#     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
 
-    # Comment the next line if you're using 'cuda'
-    cfg['MODEL']['DEVICE']='cpu'
+#     # Comment the next line if you're using 'cuda'
+#     cfg['MODEL']['DEVICE']='cpu'
 
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(cfg_path)
+#     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(cfg_path)
 
-    return cfg
+#     return cfg
 
 cfg = load_config_and_model_weights(cfg_path)
 

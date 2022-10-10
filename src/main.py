@@ -32,6 +32,7 @@ logger.remove()
 logger.add(
     sys.stdout,
     format="<light-yellow>{time:YYYY-MM-DD HH:mm:ss}</light-yellow> | <light-blue>{level}</light-blue> | <cyan>{message}</cyan> | <light-red>{function}: {line}</light-red>",
+    sink="./logs/main_log.txt",
     level="INFO",
     backtrace=True,
     colorize=True,

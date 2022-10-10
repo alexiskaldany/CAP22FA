@@ -1,8 +1,8 @@
 """
-test_custom_trainer.py
-Testing: Testing trainer object
+custom_trainer.py
+Custom models for training on Visual Question Answering
 author: @alexiskaldany, @justjoshtings
-created: 9/28/22
+created: 10/10/22
 """
 from transformers import BertTokenizer, VisualBertForQuestionAnswering, VisualBertForMultipleChoice
 from transformers import VisualBertModel, VisualBertConfig
@@ -92,6 +92,28 @@ class VQAModel:
             
             total_train_loss = 0
             total_train_accuracy = 0
+            total_train_f1 = 0
+            total_train_precision = 0
+            total_train_recall = 0
+
+            # Count each result per iteration, then pass to confusion matrix fn to calculate macro metrics per epoch to print to logger
+            # 
+            total_predA_labelA = 0
+            total_predA_labelB = 0
+            total_predA_labelC = 0
+            total_predA_labelD = 0
+            total_predB_labelA = 0
+            total_predB_labelB = 0
+            total_predB_labelC = 0
+            total_predB_labelD = 0
+            total_predC_labelA = 0
+            total_predC_labelB = 0
+            total_predC_labelC = 0
+            total_predC_labelD = 0
+            total_predD_labelA = 0
+            total_predD_labelB = 0
+            total_predD_labelC = 0
+            total_predD_labelD = 0
 
             t0 = time.time()
             self.model.train()
@@ -126,6 +148,7 @@ class VQAModel:
                 
                 logits = outputs[1]
                 y_pred = logits.argmax(-1)
+                
                 train_acc = torch.sum(y_pred == b_labels)
 
                 total_train_loss += batch_loss
@@ -133,6 +156,24 @@ class VQAModel:
                 logger.info(f'Predicted: {y_pred}, Target: {b_labels}, Accuracy: {train_acc}')
 
                 total_train_accuracy += train_acc
+
+                # def F1_score(prob, label):
+                #     prob = prob.bool()
+                #     label = label.bool()
+                #     epsilon = 1e-7
+                #     TP = (prob & label).sum().float()
+                #     TN = ((~prob) & (~label)).sum().float()
+                #     FP = (prob & (~label)).sum().float()
+                #     FN = ((~prob) & label).sum().float()
+                #     #accuracy = (TP+TN)/(TP+TN+FP+FN)
+                #     precision = torch.mean(TP / (TP + FP + epsilon))
+                #     recall = torch.mean(TP / (TP + FN + epsilon))
+                #     F2 = 2 * precision * recall / (precision + recall + epsilon)
+                #     return precision, recall, F2
+
+                # y_true = torch.tensor([[1,0,0,1]])
+                # y_pred = torch.tensor([[1,1,0,0]])
+                # print(F1_score(y_pred, y_true))
                     
                 # # Get sample every x batches to evaluate.
                 # if step % sample_every == 0 and not step == 0:
@@ -324,6 +365,11 @@ class VQAModel:
         logger.info(f'{df_stats.head(100)}')
 
         return df_stats
+    
+    def calculate_confusion_matrix():
+        '''
+        Method to calculate the confusion matrix to calculate macro precision, macro recall, and macro F1 score
+        '''
 
 class Model_VisualBERT(VQAModel):
     '''
