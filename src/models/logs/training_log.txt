@@ -1,0 +1,17 @@
+[93m2022-10-10 19:49:55[0m | [94mINFO[0m | [36m
+
+
+[Training Script - 2022-10-10 19:49:55.322676] Running training script....[0m | [91m<module>: 52[0m
+[93m2022-10-10 19:49:55[0m | [94mINFO[0m | [36mNumber of images: 4903[0m | [91mget_data_objects: 97[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mAll data loaded, columns = Index(['image_id', 'image_path', 'question', 'list_of_answers', 'answer',
+       'abcLabel', 'annotated_image_path'],
+      dtype='object') and 15501 samples[0m | [91m<module>: 61[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mCreating train, val, test split[0m | [91mcreate_train_val_test_split: 129[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mTrain: 10850[0m | [91mcreate_train_val_test_split: 138[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mVal: 3100[0m | [91mcreate_train_val_test_split: 139[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mTest: 1551[0m | [91mcreate_train_val_test_split: 140[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mLoading tokenizer and visual embedder[0m | [91m<module>: 71[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mPreparing data for custom dataloader[0m | [91m<module>: 84[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mSetting up custom dataloaders[0m | [91m<module>: 106[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mNum Train:  10850, 	Num Validation:  10850, 	Num Test:  10850, 	Total Num:  32550[0m | [91m<module>: 121[0m
+[93m2022-10-10 19:49:58[0m | [94mINFO[0m | [36mSetting up model VisualBERT[0m | [91m__init__: 44[0m
