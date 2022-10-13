@@ -58,22 +58,17 @@ def drawing_arrow_heads(
     Img, coordinate_list: list, color: Tuple[int, int, int], angle: float
 ):
     """
-    pt1 = (x1,y1)
-    pt2 = (x2,y2)
-    pt3 = (? , ?)
-    angle1_2_3 == angle2_1_3 == orientation/2
-    side1_2 = ((x1-x2)**2 + (y1-y2)**2)**0.5
-    side2_3 = side1_2 * tan(angle1_2_3)
-    side_1_3 = ((x1-x3)**2 + (y1-y3)**2)**0.5
-
-    m1 = np.arctan()
-    Bleh trig...
-    Lets just draw a circle using the two points
-
-    midpoint = [(x1+x2)/2,(y1+y2)/2]
-    radius = pt1[0]-pt2[0]
-
-    Look at 23.png for seeing how to evaluate arrows
+    Syntax: cv2.arrowedLine(image, start_point, end_point, color, thickness, line_type, shift, tipLength)
+    Parameters: 
+    image: It is the image on which line is to be drawn. 
+    start_point: It is the starting coordinates of line. The coordinates are represented as tuples of two values i.e. (X coordinate value, Y coordinate value). 
+    end_point: It is the ending coordinates of line. The coordinates are represented as tuples of two values i.e. (X coordinate value, Y coordinate value). 
+    color: It is the color of line to be drawn. For BGR, we pass a tuple. eg: (255, 0, 0) for blue color. 
+    thickness: It is the thickness of the line in px. 
+    line_type: It denotes the type of the line for drawing. 
+    shift: It denotes number of fractional bits in the point coordinates. 
+    tipLength: It denotes the length of the arrow tip in relation to the arrow length. 
+    Return Value: It returns an image. 
     """
     Center_point = [
         int((coordinate_list[0][0] + coordinate_list[1][0]) / 2),
