@@ -80,6 +80,9 @@ Prep for custom dataloader
 train_ind_to_run = len(train_df)
 val_ind_to_run = len(val_df)
 test_ind_to_run = len(test_df)
+# train_ind_to_run = 50
+# val_ind_to_run = 50
+# test_ind_to_run = 50
 
 logger.info(f"Preparing data for custom dataloader")
 
@@ -130,8 +133,11 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
 								model_type='visualbert',
                                 log_file=logger)
 
-model_visualbert.train(num_epochs=4, model_weights_dir='./results/model_weights/visualbert_4epochs_test01/')
-model_visualbert.get_training_stats(model_weights_dir='./results/model_weights/visualbert_4epochs_test01/training_stats.csv')
+# training_experiment_name = '4epochs_test01'
+training_experiment_name = 'config_testing'
+
+model_visualbert.train(num_epochs=4, model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
+model_visualbert.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 '''
 Inference Test

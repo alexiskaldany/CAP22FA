@@ -148,8 +148,19 @@ class VQAModel:
                 
                 logits = outputs[1]
                 y_pred = logits.argmax(-1)
-                
-                train_acc = torch.sum(y_pred == b_labels)
+
+                labels_ind = b_labels.argmax(-1)
+
+                # print('\n\nTRYING SOFTMAX!!!',torch.sigmoid(logits))
+                # print('TRYING SOFTMAX PRED!!!',torch.sigmoid(logits).argmax(-1))
+                # print('SUM SOFTMAX PROBS',torch.sigmoid(logits).sum())
+                # print('SUM LOGITS',torch.sigmoid(logits).sum())
+                # print('ARGMAX PRED!!!',y_pred)
+                # print('LABEL!!!',b_labels, b_labels.shape)
+                # print('LOGITS!!!',logits, logits.shape)
+                # print(outputs)
+
+                train_acc = torch.sum(y_pred == labels_ind)
 
                 total_train_loss += batch_loss
                 logger.info(f'LOSS:  {loss}, {batch_loss}, {total_train_loss}')
@@ -264,7 +275,8 @@ class VQAModel:
                 batch_loss = loss.item()
 
                 y_pred = logits.argmax(-1)
-                val_acc = torch.sum(y_pred == b_labels)
+                labels_ind = b_labels.argmax(-1)
+                val_acc = torch.sum(y_pred == labels_ind)
 
                 total_eval_loss += batch_loss
                 total_eval_accuracy += val_acc
