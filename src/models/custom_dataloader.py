@@ -109,7 +109,9 @@ class CustomDataLoaderVisualBERT(CustomDataLoader):
 
         # Labels and Correct Answer
         answer_ind = self.answer_choices[idx].index(self.answers[idx])
-        labels = torch.tensor(answer_ind).unsqueeze(0)
+
+        # labels = torch.tensor(answer_ind).unsqueeze(0)
+        labels = self.ohe_labels(torch.tensor(answer_ind)).unsqueeze(0)
 
         # Inputs Dict
         inputs_dict = {k: v.unsqueeze(0) for k, v in text_encoding.items()}
@@ -121,5 +123,25 @@ class CustomDataLoaderVisualBERT(CustomDataLoader):
                             "labels": labels,
                         }
                     )
-
         return inputs_dict
+
+    def ohe_labels(self, label):
+        '''
+        One hot encode labels to match model's logits 
+
+        Params:
+            label (torch.tensor()): torch.tensor(label_index)
+
+        Returns:
+            labels (torch.tensor()): torch.tensor(logits)
+        '''
+        if label == 0:
+            labels = torch.tensor([1., 0., 0., 0.],requires_grad=True)
+        elif label == 1:
+            labels = torch.tensor([0., 1., 0., 0.],requires_grad=True)
+        elif label == 2:
+            labels = torch.tensor([0., 0., 1., 0.],requires_grad=True)
+        elif label == 3:
+            labels = torch.tensor([0., 0., 0., 1.],requires_grad=True)
+
+        return labels
