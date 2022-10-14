@@ -21,7 +21,7 @@ def copy_embeddings(m, i, o):
 
 def load_image_resize_convert(image_path):
     preprocess = transforms.Compose([
-    transforms.ToTensor(),transforms.Resize(site=(224,224)),
+    transforms.ToTensor(),transforms.Resize(size=(224,224)),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     input_tensor = preprocess(Image.open(image_path))
     input_batch = input_tensor.unsqueeze(0)
