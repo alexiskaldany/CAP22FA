@@ -130,14 +130,14 @@ class VQAModel:
                 b_visual_attention_mask = batch['visual_attention_mask'][0].to(device)
                 b_visual_token_type_ids = batch['visual_token_type_ids'][0].to(device)
 
-                # logger.info(f"Shapes of - b_input_ids: {b_input_ids.shape}, \
-                #                 b_token_type_ids: {b_token_type_ids.shape}, \
-                #                 b_attention_mask: {b_attention_mask.shape}, \
-                #                 b_labels: {b_labels.shape}, \
-                #                 b_visual_embeds: {b_visual_embeds.shape}, \
-                #                 b_visual_attention_mask: {b_visual_attention_mask.shape}, \
-                #                 b_visual_token_type_ids: {b_visual_token_type_ids.shape}, \
-                #                 ")
+                logger.info(f"Shapes of - b_input_ids: {b_input_ids.shape}, \
+                                b_token_type_ids: {b_token_type_ids.shape}, \
+                                b_attention_mask: {b_attention_mask.shape}, \
+                                b_labels: {b_labels.shape}, \
+                                b_visual_embeds: {b_visual_embeds.shape}, \
+                                b_visual_attention_mask: {b_visual_attention_mask.shape}, \
+                                b_visual_token_type_ids: {b_visual_token_type_ids.shape}, \
+                                ")
 
                 self.model.zero_grad()        
 

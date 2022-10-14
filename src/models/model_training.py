@@ -23,9 +23,9 @@ from torch.utils.data import Dataset, DataLoader
 
 # get current directory
 path = os.getcwd()
-parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
+# parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
 # add src to executable path to allow imports from src
-sys.path.insert(0, parent_path)
+sys.path.insert(0, path)
 
 from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER, TEST_DIRECTORY, TEST_IMAGE_OUTPUT
 from src.utils.prepare_and_download import get_data_objects, create_dataframe
@@ -77,12 +77,12 @@ tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|star
 Prep for custom dataloader
 '''
 # Select only the first train_ind_to_run samples just for testing training loop purposes
-train_ind_to_run = len(train_df)
-val_ind_to_run = len(val_df)
-test_ind_to_run = len(test_df)
-# train_ind_to_run = 50
-# val_ind_to_run = 50
-# test_ind_to_run = 50
+# train_ind_to_run = len(train_df)
+# val_ind_to_run = len(val_df)
+# test_ind_to_run = len(test_df)
+train_ind_to_run = 50
+val_ind_to_run = 50
+test_ind_to_run = 50
 
 logger.info(f"Preparing data for custom dataloader")
 
