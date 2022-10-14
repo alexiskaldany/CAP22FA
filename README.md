@@ -46,20 +46,6 @@ lorem ipsum - once we have more of a concrete plan we can start populating this 
 
 ### Setup
 
-This project is set up using pyenv and poetry.
-
-- Follow the instructions for pyenv at https://github.com/pyenv/pyenv#installation. Please do not skip the
-  pre-requisites step. There is also more info at https://github.com/pyenv/pyenv/wiki#suggested-build-environment 
-- Follow the instructions to install poetry at https://python-poetry.org/docs/#installation
-  - Now configure poetry so that the virtualenv will be created within the repository when the project is installed:
-    `poetry config virtualenvs.in-project true`
-
-- Then build the virtual environment with:
-
-```bash
-   poetry install
-```
-
 # <a name="architecture"></a>
 ## Architecture
 lorem ipsum - for descriptions of both our cloud/software architecture and model architecture. will fill towards the end of project and can add some visual diagrams to help
