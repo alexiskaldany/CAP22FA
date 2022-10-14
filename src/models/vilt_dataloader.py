@@ -20,12 +20,13 @@ from sklearn.preprocessing import OneHotEncoder
 import spacy
 import numpy as np
 nlp = spacy.load("en_core_web_sm")
+import json
 
-answers = ["cars", "trucks", "buses", "motorcycles"]
-answer_tokens = [nlp(x) for x in answers]
-print(answer_tokens)
-array = torch.tensor([answers]).unsqueeze(0)
-print(array)
+# answers = ["cars", "trucks", "buses", "motorcycles"]
+# answer_tokens = [nlp(x) for x in answers]
+# print(answer_tokens)
+# array = torch.tensor([answers]).unsqueeze(0)
+# print(array)
 # array = np.array([x for x in answer_tokens])
 # print(array)
 # labels = OneHotEncoder().fit_transform().toarray()
@@ -156,25 +157,27 @@ class CustomDataLoaderViLT(CustomDataLoader):
         return inputs_dict
     
     
-# from transformers import ViltProcessor, ViltForQuestionAnswering
-# import requests
-# from PIL import Image
+from transformers import ViltProcessor, ViltForQuestionAnswering
+import requests
+from PIL import Image
 
-# url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-# image = Image.open("/Users/alexiskaldany/school/CAP22FA/example_data/0.png")
-# text = "What is A in the diagram?"
+url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+image = Image.open("/Users/alexiskaldany/school/CAP22FA/example_data/0.png")
+text = "What is A in the diagram?"
 
-# processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
-# model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
 
-# # prepare inputs
-# encoding = processor(image, text, return_tensors="pt")
+# prepare inputs
+encoding = processor(image, text, return_tensors="pt")
+print(encoding.keys())
 
-# # forward pass
-# outputs = model(**encoding)
-# logits = outputs.logits
-# idx = logits.argmax(-1).item()
 
-# print(idx)
-# print("Predicted answer:", model.config.id2label[idx])
-# print(logits.argmax(-1))
+# forward pass
+outputs = model(**encoding)
+logits = outputs.logits
+idx = logits.argmax(-1).item()
+
+print(idx)
+print("Predicted answer:", model.config.id2label[idx])
+print(logits.argmax(-1))

@@ -125,6 +125,7 @@ class VQAModel:
                 b_attention_mask = batch['attention_mask'][0].to(device)
 
                 b_labels = batch['labels'][0].to(device)
+                print(b_labels)
 
                 b_visual_embeds = batch['visual_embeds'][0].to(device)
                 b_visual_attention_mask = batch['visual_attention_mask'][0].to(device)
