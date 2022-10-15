@@ -77,12 +77,12 @@ tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|star
 Prep for custom dataloader
 '''
 # Select only the first train_ind_to_run samples just for testing training loop purposes
-# train_ind_to_run = len(train_df)
-# val_ind_to_run = len(val_df)
-# test_ind_to_run = len(test_df)
-train_ind_to_run = 50
-val_ind_to_run = 50
-test_ind_to_run = 50
+train_ind_to_run = len(train_df)
+val_ind_to_run = len(val_df)
+test_ind_to_run = len(test_df)
+# train_ind_to_run = 50
+# val_ind_to_run = 50
+# test_ind_to_run = 50
 
 logger.info(f"Preparing data for custom dataloader")
 

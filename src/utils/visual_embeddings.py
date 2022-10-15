@@ -25,8 +25,8 @@ def load_image_resize_convert(image_path):
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     input_tensor = preprocess(Image.open(image_path))
     input_batch = input_tensor.unsqueeze(0)
-    print(input_tensor.shape)
-    print(input_batch.shape)
+    # print(input_tensor.shape)
+    # print(input_batch.shape)
     return input_batch
 
 def get_multiple_embeddings(list_of_images:list):
