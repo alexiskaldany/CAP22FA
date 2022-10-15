@@ -27,30 +27,30 @@ with open(path + '/src/models/results/model_weights/visualbert_config_testing/vo
     vocab_list = f.read().split("\n")
 
 def has_only_one_word_answers(list_of_answers:list)->bool:
-    if any([re.match(r'^[a-zA-Z0-9_]+$',x) for x in list_of_answers]):
-        return False 
-    else:
-        return True
-
-def has_all_answers_in_token_list(list_of_answers:list,vocab_list)->bool:
-    answer_is_token =[]
-    token_match = []
-    list_of_answers = [x for x in list_of_answers if x != None or list]
-    for answer in list_of_answers:
-        is_token =[]
-        for index,token in enumerate(vocab_list):
-            if answer == token:
-                is_token.append(True)
-                token_match.append(([index,token],answer))
-            else:
-                is_token.append(False)
-        if any(is_token):
-            answer_is_token.append(True)
-    if any(answer_is_token):
-        print(token_match)
-        return True
+    if all([re.match(r'^[a-zA-Z0-9_]$',x) for x in list_of_answers]):
+        return True 
     else:
         return False
+
+# def has_all_answers_in_token_list(list_of_answers:list,vocab_list)->bool:
+#     answer_is_token =[]
+#     token_match = []
+#     list_of_answers = [x for x in list_of_answers if x != None or list]
+#     for answer in list_of_answers:
+#         is_token =[]
+#         for index,token in enumerate(vocab_list):
+#             if answer == token:
+#                 is_token.append(True)
+#                 token_match.append(([index,token],answer))
+#             else:
+#                 is_token.append(False)
+#         if any(is_token):
+#             answer_is_token.append(True)
+#     if any(answer_is_token):
+#         print(token_match)
+#         return True
+#     else:
+#         return False
             
 data_df['one_word_answers'] = data_df['list_of_answers'].apply(lambda x: has_only_one_word_answers(x))
 
