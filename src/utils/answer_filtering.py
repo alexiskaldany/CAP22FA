@@ -53,12 +53,13 @@ def has_all_answers_in_token_list(list_of_answers:list,vocab_list)->bool:
         return False
             
 data_df['one_word_answers'] = data_df['list_of_answers'].apply(lambda x: has_only_one_word_answers(x))
-print(data_df['one_word_answers'].value_counts())
 
+print(data_df.shape[0])
 data_df = data_df[data_df['one_word_answers'] == True]
-data_df['has_all_answers_in_token_list'] = data_df['list_of_answers'].apply(lambda x: has_all_answers_in_token_list(x,vocab_list))
-
-print(data_df['has_all_answers_in_token_list'].value_counts())
+print(data_df.shape[0])
+# data_df['has_all_answers_in_token_list'] = data_df['list_of_answers'].apply(lambda x: has_all_answers_in_token_list(x,vocab_list))
+# print(data_df['one_word_answers'].value_counts())
+# print(data_df['has_all_answers_in_token_list'].value_counts())
                                                                         
 
 data_df.to_csv(DATA_CSV)

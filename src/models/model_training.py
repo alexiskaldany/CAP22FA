@@ -33,6 +33,7 @@ from src.utils.applying_annotations import execute_full_set_annotation
 from src.utils.visual_embeddings import get_multiple_embeddings
 from src.utils.pre_process import create_train_val_test_split
 from src.utils.configs import RANDOM_STATE
+from src.utils.answer_filtering import has_only_one_word_answers
 
 random_state = RANDOM_STATE
 
@@ -43,7 +44,7 @@ logger.remove()
 logger.add(
     "./logs/training_log.txt",
     # sys.stdout,
-    format="<light-yellow>{time:YYYY-MM-DD HH:mm:ss}</light-yellow> | <light-blue>{level}</light-blue> | <cyan>{message}</cyan> | <light-red>{function}: {line}</light-red>",
+    format="{time:YYYY-MM-DD HH:mm:ss}|{level}| {message}|{function}: {line}",
     level="INFO",
     backtrace=True,
     colorize=True,
@@ -56,6 +57,9 @@ Load data
 '''
 combined_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER)
 data_df = create_dataframe(combined_list)
+data_df['one_word_answers'] = data_df['list_of_answers'].apply(lambda x: has_only_one_word_answers(x))
+data_df = data_df[data_df['one_word_answers'] == True]
+
 data_df['annotated_image_path'] = data_df['image_path'].str.replace('images','annotated_images')
 
 logger.info(f"All data loaded, columns = {data_df.keys()} and {len(data_df)} samples")
