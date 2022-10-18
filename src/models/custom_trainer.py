@@ -43,7 +43,7 @@ class VQAModel:
         if self.LOGGING:
             logger.info(f"Setting up model VisualBERT")
 	
-    def train(self, num_epochs=1, lr=5e-5, sample_every=100, eval_during_training=False, save_weights=True, model_weights_dir='./results/model_weights/') :
+    def train(self, num_epochs=1, lr=5e-5, sample_every=100, eval_during_training=False, save_weights=True, model_weights_dir='./results/model_weights/', optimizer=None, previous_num_epoch=0):
         '''
         Method to perform training loop
         Params:
@@ -54,15 +54,22 @@ class VQAModel:
             eval_during_training (Boolean): whether to evaluate during training every sample_every, default=False
             save_weights (Boolean): whether to save weights or not after training
             model_weights_dir (str): directory to save model weights after model training completion
+            optimizer (optimizer): model optimizer to use
+            previous_num_epoch (int): previous number of epochs already trained, default 0
         '''
         # Optimizer and Learning Rate Scheduler
         lr=5e-5
 
-        optimizer = AdamW(self.model.parameters(), lr=lr)
+        if optimizer is None:
+            self.optimizer = AdamW(self.model.parameters(), lr=lr)
+        else:
+            self.optimizer = optimizer
 
-        num_epochs = num_epochs
-        num_training_steps = num_epochs * len(self.train_data_loader)
-        lr_scheduler = get_scheduler(name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps)
+        self.num_epochs = num_epochs
+        self.previous_num_epoch = previous_num_epoch
+
+        num_training_steps = self.num_epochs * len(self.train_data_loader)
+        lr_scheduler = get_scheduler(name="linear", optimizer=self.optimizer, num_warmup_steps=0, num_training_steps=num_training_steps)
 
         self.model.resize_token_embeddings(len(self.tokenizer))
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -82,12 +89,12 @@ class VQAModel:
         gc.collect()
         torch.cuda.empty_cache()
 
-        for epoch in range(num_epochs):
+        for epoch in range(self.num_epochs):
             print("")
-            print('======== Epoch {:} / {:} ========'.format(epoch + 1, num_epochs))
+            print('======== Epoch {:} / {:} ========'.format(epoch + 1, self.num_epochs))
             print(f'Training {self.model._get_name()}...')
             if self.LOGGING:
-                logger.info(f"{datetime.now()} -- [Model Training] \n======== Epoch {epoch + 1} / {num_epochs} ========")	
+                logger.info(f"{datetime.now()} -- [Model Training] \n======== Epoch {epoch + 1} / {self.num_epochs} ========")	
                 logger.info(f"{datetime.now()} -- [Model Training] Training... {self.model_type}")	
             
             total_train_loss = 0
@@ -114,6 +121,8 @@ class VQAModel:
             total_predD_labelB = 0
             total_predD_labelC = 0
             total_predD_labelD = 0
+
+            total_confusion = {0:[0,0,0,0], 1:[0,0,0,0], 2:[0,0,0,0], 3:[0,0,0,0]}
 
             t0 = time.time()
             self.model.train()
@@ -149,6 +158,7 @@ class VQAModel:
                 logits = outputs[1]
                 y_pred = logits.argmax(-1)
 
+                # try softmax
                 labels_ind = b_labels.argmax(-1)
 
                 # print('\n\nTRYING SOFTMAX!!!',torch.sigmoid(logits))
@@ -162,11 +172,38 @@ class VQAModel:
 
                 train_acc = torch.sum(y_pred == labels_ind)
 
+
+
                 total_train_loss += batch_loss
                 logger.info(f'LOSS:  {loss}, {batch_loss}, {total_train_loss}')
                 logger.info(f'Predicted: {y_pred}, Target: {b_labels}, Accuracy: {train_acc}')
 
                 total_train_accuracy += train_acc
+
+                total_confusion[y_pred.item()][labels_ind.item()] += 1
+
+                # if y_pred == 0 and labels_ind == 0:
+                #     total_predA_labelA += 1
+                # if y_pred == 0 and labels_ind == 1:
+                #     total_predA_labelB += 1
+
+                # total_predA_labelA = 0
+                # total_predA_labelB = 0
+                # total_predA_labelC = 0
+                # total_predA_labelD = 0
+                # total_predB_labelA = 0
+                # total_predB_labelB = 0
+                # total_predB_labelC = 0
+                # total_predB_labelD = 0
+                # total_predC_labelA = 0
+                # total_predC_labelB = 0
+                # total_predC_labelC = 0
+                # total_predC_labelD = 0
+                # total_predD_labelA = 0
+                # total_predD_labelB = 0
+                # total_predD_labelC = 0
+                # total_predD_labelD = 0
+
 
                 # def F1_score(prob, label):
                 #     prob = prob.bool()
@@ -215,13 +252,15 @@ class VQAModel:
                         # model.train()
 
                 loss.backward()
-                optimizer.step()
+                self.optimizer.step()
                 lr_scheduler.step()
                 progress_bar.update(1)
 
             # Calculate the average loss over all of the batches.
             avg_train_loss = total_train_loss / len(self.train_data_loader)
-            avg_train_accuracy = total_train_accuracy/len(self.train_data_loader)       
+            avg_train_accuracy = total_train_accuracy/len(self.train_data_loader)
+
+            print('I AM CONFUSION!!',total_confusion)       
 
             # # Measure how long this epoch took.
             training_time = self.format_time(time.time() - t0)
@@ -339,8 +378,64 @@ class VQAModel:
         model_to_save.save_pretrained(self.model_weights_dir)
         self.tokenizer.save_pretrained(self.model_weights_dir)
 
+        # save model checkpoint
+        if self.LOGGING:
+            logger.info(f"{datetime.now()} -- [Model] Saving model checkpoint to {self.model_weights_dir}checkpoint/model.pth...")
+        print(f"Saving model checkpoint to {self.model_weights_dir}checkpoint/model.pth...")
+
+        total_num_epochs = self.previous_num_epoch + self.num_epochs
+
+        if not os.path.exists(self.model_weights_dir+'checkpoint/'):
+            os.makedirs(self.model_weights_dir+'checkpoint/')
+
+        torch.save({
+                    'epoch': total_num_epochs,
+                    'model_state_dict': self.model.state_dict(),
+                    'optimizer_state_dict': self.optimizer.state_dict(),
+                    'loss': self.criterion,
+                    }, f'{self.model_weights_dir}checkpoint/model.pth')
+
         # Good practice: save your training arguments together with the trained model
         # torch.save(args, os.path.join(output_dir, 'training_args.bin'))
+    
+    def load_from_checkpoint(self, model_checkpoint_dir):
+        '''
+        To load from a saved checkpoint
+
+        Params:
+            model_checkpoint_dir (str): path to model checkpoint
+
+        Returns:
+            self.model (model): previous model state
+            self.optimizer (optimizer): previous optimizer state
+            self.previous_num_epoch (int): number of epochs previously trained in checkpoint
+            self.criterion (loss function state): previous loss function state
+        '''
+        # load the model checkpoint
+        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Loading model from checkpoint {model_checkpoint_dir}/checkpoint/model.pth...")
+        print(f"{datetime.now()} -- [Model Checkpoint Loading] Loading model from checkpoint {model_checkpoint_dir}/checkpoint/model.pth...")
+        checkpoint = torch.load(f'{model_checkpoint_dir}/checkpoint/model.pth')
+        
+        # load model weights state_dict
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Previously trained model weights state_dict loaded...")
+        print('Previously trained model weights state_dict loaded...')
+        
+        # load trained optimizer state_dict
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Previously trained optimizer state_dict loaded...")
+        print('Previously trained optimizer state_dict loaded...')
+        
+        # load last number of epochs
+        self.previous_num_epoch = checkpoint['epoch']
+       
+        # load the criterion
+        self.criterion = checkpoint['loss']
+
+        # load tokenizer
+        self.tokenizer =  BertTokenizer.from_pretrained(model_checkpoint_dir, bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
+
+        return self.model, self.optimizer, self.previous_num_epoch, self.criterion, self.tokenizer
     
     def format_time(self, elapsed):
         '''
@@ -388,7 +483,7 @@ class Model_VisualBERT(VQAModel):
     VisualBERT Model
     https://huggingface.co/docs/transformers/v4.22.1/en/model_doc/visual_bert#transformers.VisualBertModel
     '''
-    def __init__(self, random_state, train_data_loader, valid_data_loader, test_data_loader, model_type='visualbert', log_file=None):
+    def __init__(self, random_state, train_data_loader, valid_data_loader, test_data_loader, model_type='visualbert', log_file=None, criterion=torch.nn.CrossEntropyLoss(), model=None, tokenizer=None):
         '''
         Params:
             self: instance of object
@@ -398,14 +493,24 @@ class Model_VisualBERT(VQAModel):
             test_data_loader (torch.utils.data.DataLoader): test data loader
             model_type (str): ['visualbert', ]
             log_file (str): default is None to not have logging, otherwise, specify logging path ../filepath/log.log
+            criterion (loss function): default for VisualBERT is torch.nn.CrossEntropyLoss()
         '''
         VQAModel.__init__(self, random_state, train_data_loader, valid_data_loader, test_data_loader, log_file=log_file)
         self.model_type = model_type
 
-        configuration = VisualBertConfig.from_pretrained("uclanlp/visualbert-vcr")
-        configuration.__dict__['visual_embedding_dim'] = 512
-        self.model = VisualBertForMultipleChoice(configuration)
-        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
+        if model is None:
+            configuration = VisualBertConfig.from_pretrained("uclanlp/visualbert-vcr")
+            configuration.__dict__['visual_embedding_dim'] = 512
+            self.model = VisualBertForMultipleChoice(configuration)
+        else:
+            self.model = model
+
+        if tokenizer is None:
+            self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
+        else:
+            self.tokenizer = tokenizer
+
+        self.criterion = criterion
 
     def load_weights(self, model_weights_dir):
         '''
@@ -421,3 +526,6 @@ class Model_VisualBERT(VQAModel):
         # Load a trained model and vocabulary that you have fine-tuned
         self.model = VisualBertForMultipleChoice.from_pretrained(model_weights_dir)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
+    
+
+    

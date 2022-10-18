@@ -77,29 +77,29 @@ tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|star
 Prep for custom dataloader
 '''
 # Select only the first train_ind_to_run samples just for testing training loop purposes
-train_ind_to_run = len(train_df)
-val_ind_to_run = len(val_df)
-test_ind_to_run = len(test_df)
-# train_ind_to_run = 50
-# val_ind_to_run = 50
-# test_ind_to_run = 50
+# train_ind_to_run = len(train_df)
+# val_ind_to_run = len(val_df)
+# test_ind_to_run = len(test_df)
+train_ind_to_run = 50
+val_ind_to_run = 50
+test_ind_to_run = 50
 
 logger.info(f"Preparing data for custom dataloader")
 
 train_prompts = train_df["question"].to_list()[:train_ind_to_run]
 train_answer_choices = train_df["list_of_answers"].to_list()[:train_ind_to_run]
 train_answers = train_df["answer"].to_list()[:train_ind_to_run]
-train_image_paths = train_df["image_path"].to_list()[:train_ind_to_run]
+train_image_paths = train_df["annotated_image_path"].to_list()[:train_ind_to_run]
 
 val_prompts = val_df["question"].to_list()[:val_ind_to_run]
 val_answer_choices = val_df["list_of_answers"].to_list()[:val_ind_to_run]
 val_answers = val_df["answer"].to_list()[:val_ind_to_run]
-val_image_paths = val_df["image_path"].to_list()[:val_ind_to_run]
+val_image_paths = val_df["annotated_image_path"].to_list()[:val_ind_to_run]
 
 test_prompts = test_df["question"].to_list()[:test_ind_to_run]
 test_answer_choices = test_df["list_of_answers"].to_list()[:test_ind_to_run]
 test_answers = test_df["answer"].to_list()[:test_ind_to_run]
-test_image_paths = test_df["image_path"].to_list()[:test_ind_to_run]
+test_image_paths = test_df["annotated_image_path"].to_list()[:test_ind_to_run]
 
 '''
 VisualBERT Model Training
@@ -134,10 +134,30 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
                                 log_file=logger)
 
 # training_experiment_name = '4epochs_test01'
-training_experiment_name = 'config_testing'
+training_experiment_name = 'with_annotations_3epochs_testing'
 
-model_visualbert.train(num_epochs=4, model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
-model_visualbert.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+# model_visualbert.train(num_epochs=3, model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
+# model_visualbert.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+
+'''
+Load from checkpoint to continue training
+'''
+model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
+
+training_experiment_name = 'with_annotations_6epochs_testing'
+model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
+								train_data_loader=visualbert_train_data_loader,
+								valid_data_loader=visualbert_valid_data_loader,
+								test_data_loader=visualbert_test_data_loader,
+								model_type='visualbert',
+                                log_file=logger,
+                                criterion=criterion_from_checkpoint, 
+                                model=model_from_checkpoint,
+                                tokenizer=tokenizer_from_checkpoint)
+
+model_visualbert_checkpoint.train(num_epochs=3, model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/', optimizer=optimizer_from_checkpoint, previous_num_epoch=previous_num_epoch)
+model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+
 
 '''
 Inference Test

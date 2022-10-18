@@ -6,6 +6,7 @@ __pycache__/
 nohup.out
 *.bin
 *ignore*
+*checkpoint/
 
 # C extensions
 *.so
