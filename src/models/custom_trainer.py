@@ -19,6 +19,7 @@ import datetime as dt
 import random
 import pandas as pd
 from loguru import logger
+import numpy as np
 
 class VQAModel:
     '''
@@ -43,7 +44,26 @@ class VQAModel:
         if self.LOGGING:
             logger.info(f"Setting up model VisualBERT")
 	
-    def train(self, num_epochs=1, lr=5e-5, sample_every=100, eval_during_training=False, save_weights=True, model_weights_dir='./results/model_weights/', optimizer=None, previous_num_epoch=0):
+    def set_train_parameters(self, num_epochs=1, lr=5e-5, optimizer=None, previous_num_epoch=0):
+        '''
+        Method to set training parameters
+        Params:
+            self: instance of object
+            num_epochs (int): number of epochs to train, default=1
+            lr (float): learning rate, default=5e-5
+            optimizer (optimizer): model optimizer to use
+            previous_num_epoch (int): previous number of epochs already trained, default 0
+        '''
+        # Optimizer and Learning Rate Scheduler
+        if optimizer is None:
+            self.optimizer = AdamW(self.model.parameters(), lr=lr)
+        else:
+            self.optimizer = optimizer
+
+        self.num_epochs = num_epochs
+        self.previous_num_epoch = previous_num_epoch
+
+    def train(self, sample_every=100, eval_during_training=False, save_weights=True, model_weights_dir='./results/model_weights/'):
         '''
         Method to perform training loop
         Params:
@@ -57,17 +77,6 @@ class VQAModel:
             optimizer (optimizer): model optimizer to use
             previous_num_epoch (int): previous number of epochs already trained, default 0
         '''
-        # Optimizer and Learning Rate Scheduler
-        lr=5e-5
-
-        if optimizer is None:
-            self.optimizer = AdamW(self.model.parameters(), lr=lr)
-        else:
-            self.optimizer = optimizer
-
-        self.num_epochs = num_epochs
-        self.previous_num_epoch = previous_num_epoch
-
         num_training_steps = self.num_epochs * len(self.train_data_loader)
         lr_scheduler = get_scheduler(name="linear", optimizer=self.optimizer, num_warmup_steps=0, num_training_steps=num_training_steps)
 
@@ -103,25 +112,6 @@ class VQAModel:
             total_train_precision = 0
             total_train_recall = 0
 
-            # Count each result per iteration, then pass to confusion matrix fn to calculate macro metrics per epoch to print to logger
-            # 
-            total_predA_labelA = 0
-            total_predA_labelB = 0
-            total_predA_labelC = 0
-            total_predA_labelD = 0
-            total_predB_labelA = 0
-            total_predB_labelB = 0
-            total_predB_labelC = 0
-            total_predB_labelD = 0
-            total_predC_labelA = 0
-            total_predC_labelB = 0
-            total_predC_labelC = 0
-            total_predC_labelD = 0
-            total_predD_labelA = 0
-            total_predD_labelB = 0
-            total_predD_labelC = 0
-            total_predD_labelD = 0
-
             total_confusion = {0:[0,0,0,0], 1:[0,0,0,0], 2:[0,0,0,0], 3:[0,0,0,0]}
 
             t0 = time.time()
@@ -156,10 +146,17 @@ class VQAModel:
                 batch_loss = loss.item()
                 
                 logits = outputs[1]
-                y_pred = logits.argmax(-1)
+                m = torch.nn.Softmax(dim=1)
+                y_pred = m(logits).argmax(-1)
 
-                # try softmax
                 labels_ind = b_labels.argmax(-1)
+                
+                # print('\n\nTRYING ARGMAX!!!',b_labels.argmax(-1))
+                # print('TRYING LOGITS!!!',logits)
+                # print('TRYING SOFTMAX!!!',m(logits))
+                # print('TRYING SOFTMAX!!!',m(logits).sum())
+                # print('TRYING sigmoid!!!',torch.sigmoid(logits))
+                # print('TRYING sigmoid!!!',torch.sigmoid(logits).sum())
 
                 # print('\n\nTRYING SOFTMAX!!!',torch.sigmoid(logits))
                 # print('TRYING SOFTMAX PRED!!!',torch.sigmoid(logits).argmax(-1))
@@ -172,57 +169,14 @@ class VQAModel:
 
                 train_acc = torch.sum(y_pred == labels_ind)
 
-
-
                 total_train_loss += batch_loss
                 logger.info(f'LOSS:  {loss}, {batch_loss}, {total_train_loss}')
                 logger.info(f'Predicted: {y_pred}, Target: {b_labels}, Accuracy: {train_acc}')
 
                 total_train_accuracy += train_acc
 
-                total_confusion[y_pred.item()][labels_ind.item()] += 1
+                total_confusion[labels_ind.item()][y_pred.item()] += 1
 
-                # if y_pred == 0 and labels_ind == 0:
-                #     total_predA_labelA += 1
-                # if y_pred == 0 and labels_ind == 1:
-                #     total_predA_labelB += 1
-
-                # total_predA_labelA = 0
-                # total_predA_labelB = 0
-                # total_predA_labelC = 0
-                # total_predA_labelD = 0
-                # total_predB_labelA = 0
-                # total_predB_labelB = 0
-                # total_predB_labelC = 0
-                # total_predB_labelD = 0
-                # total_predC_labelA = 0
-                # total_predC_labelB = 0
-                # total_predC_labelC = 0
-                # total_predC_labelD = 0
-                # total_predD_labelA = 0
-                # total_predD_labelB = 0
-                # total_predD_labelC = 0
-                # total_predD_labelD = 0
-
-
-                # def F1_score(prob, label):
-                #     prob = prob.bool()
-                #     label = label.bool()
-                #     epsilon = 1e-7
-                #     TP = (prob & label).sum().float()
-                #     TN = ((~prob) & (~label)).sum().float()
-                #     FP = (prob & (~label)).sum().float()
-                #     FN = ((~prob) & label).sum().float()
-                #     #accuracy = (TP+TN)/(TP+TN+FP+FN)
-                #     precision = torch.mean(TP / (TP + FP + epsilon))
-                #     recall = torch.mean(TP / (TP + FN + epsilon))
-                #     F2 = 2 * precision * recall / (precision + recall + epsilon)
-                #     return precision, recall, F2
-
-                # y_true = torch.tensor([[1,0,0,1]])
-                # y_pred = torch.tensor([[1,1,0,0]])
-                # print(F1_score(y_pred, y_true))
-                    
                 # # Get sample every x batches to evaluate.
                 # if step % sample_every == 0 and not step == 0:
 
@@ -260,7 +214,16 @@ class VQAModel:
             avg_train_loss = total_train_loss / len(self.train_data_loader)
             avg_train_accuracy = total_train_accuracy/len(self.train_data_loader)
 
-            print('I AM CONFUSION!!',total_confusion)       
+            print('\n\n\nTOTAL_TRAIN_ACCURACY', total_train_accuracy)
+            print('avg_train_accuracy', avg_train_accuracy)
+            print('len dataloader', len(self.train_data_loader))
+
+            total_confusion_matrix = np.vstack((np.array(total_confusion[0]), np.array(total_confusion[1]), np.array(total_confusion[2]), np.array(total_confusion[3])))
+            precision, recall, specificity, accuracy, F1_score, total_accuracy = self.calculate_scores_from_confusion_matrix(total_confusion_matrix)
+
+            print('I AM CONFUSION!!', total_confusion_matrix)       
+            print('I AM CONFUSION METRICS!!',precision, recall, specificity, accuracy, F1_score)    
+            print('I AM CONFUSION METRICS!!',total_accuracy)    
 
             # # Measure how long this epoch took.
             training_time = self.format_time(time.time() - t0)
@@ -398,44 +361,42 @@ class VQAModel:
         # Good practice: save your training arguments together with the trained model
         # torch.save(args, os.path.join(output_dir, 'training_args.bin'))
     
-    def load_from_checkpoint(self, model_checkpoint_dir):
+    def calculate_scores_from_confusion_matrix(self, cm):
         '''
-        To load from a saved checkpoint
+        Method to calculate other metrics: TP, TN, FP, FN, F1, Recall, Precision, Specificity, Sensitivity
 
         Params:
-            model_checkpoint_dir (str): path to model checkpoint
-
+            self: instance of object
+            cm (np array): confusion matrix
+        
         Returns:
-            self.model (model): previous model state
-            self.optimizer (optimizer): previous optimizer state
-            self.previous_num_epoch (int): number of epochs previously trained in checkpoint
-            self.criterion (loss function state): previous loss function state
         '''
-        # load the model checkpoint
-        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Loading model from checkpoint {model_checkpoint_dir}/checkpoint/model.pth...")
-        print(f"{datetime.now()} -- [Model Checkpoint Loading] Loading model from checkpoint {model_checkpoint_dir}/checkpoint/model.pth...")
-        checkpoint = torch.load(f'{model_checkpoint_dir}/checkpoint/model.pth')
-        
-        # load model weights state_dict
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Previously trained model weights state_dict loaded...")
-        print('Previously trained model weights state_dict loaded...')
-        
-        # load trained optimizer state_dict
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Previously trained optimizer state_dict loaded...")
-        print('Previously trained optimizer state_dict loaded...')
-        
-        # load last number of epochs
-        self.previous_num_epoch = checkpoint['epoch']
-       
-        # load the criterion
-        self.criterion = checkpoint['loss']
+        TP = np.diag(cm)
+        FP = np.sum(cm, axis=0) - TP
+        FN = np.sum(cm, axis=1) - TP
 
-        # load tokenizer
-        self.tokenizer =  BertTokenizer.from_pretrained(model_checkpoint_dir, bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
+        num_classes = cm.shape[0]
+        TN = []
+        for i in range(num_classes):
+            temp = np.delete(cm, i, 0)    # delete ith row
+            temp = np.delete(temp, i, 1)  # delete ith column
+            TN.append(sum(sum(temp)))
 
-        return self.model, self.optimizer, self.previous_num_epoch, self.criterion, self.tokenizer
+        l = 50
+        for i in range(num_classes):
+            print(TP[i] + FP[i] + FN[i] + TN[i] == l)
+
+        precision = TP/(TP+FP)
+        # total_precision = 
+        recall = TP/(TP+FN)
+        # total_recall = 
+        specificity = TN/(TN+FP)
+        # total_specificity = 
+        accuracy = (TP) / (TP+FP)
+        total_accuracy = sum(TP) / sum((TP+FP))
+        F1_score = 2 * (precision * recall)/(precision + recall)
+
+        return precision, recall, specificity, accuracy, F1_score, total_accuracy
     
     def format_time(self, elapsed):
         '''
@@ -526,6 +487,47 @@ class Model_VisualBERT(VQAModel):
         # Load a trained model and vocabulary that you have fine-tuned
         self.model = VisualBertForMultipleChoice.from_pretrained(model_weights_dir)
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
+
+    def load_from_checkpoint(self, model_checkpoint_dir):
+        '''
+        To load from a saved checkpoint
+
+        Params:
+            model_checkpoint_dir (str): path to model checkpoint
+
+        Returns:
+            self.model (model): previous model state
+            self.optimizer (optimizer): previous optimizer state
+            self.previous_num_epoch (int): number of epochs previously trained in checkpoint
+            self.criterion (loss function state): previous loss function state
+        '''
+        # load the model checkpoint
+        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Loading model from checkpoint {model_checkpoint_dir}checkpoint/model.pth...")
+        print(f"{datetime.now()} -- [Model Checkpoint Loading] Loading model from checkpoint {model_checkpoint_dir}checkpoint/model.pth...")
+        checkpoint = torch.load(f'{model_checkpoint_dir}checkpoint/model.pth')
+
+        # load model weights state_dict
+        self.model = VisualBertForMultipleChoice.from_pretrained("uclanlp/visualbert-vcr", state_dict = checkpoint['model_state_dict'], ignore_mismatched_sizes=True)
+        # self.model.load_state_dict(checkpoint['model_state_dict'])
+        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Previously trained model weights state_dict loaded...")
+        print('Previously trained model weights state_dict loaded...')
+        
+        # load trained optimizer state_dict
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Previously trained optimizer state_dict loaded...")
+        print('Previously trained optimizer state_dict loaded...')
+        
+        # load last number of epochs
+        self.previous_num_epoch = checkpoint['epoch']
+       
+        # load the criterion
+        self.criterion = checkpoint['loss']
+
+        # load tokenizer
+        self.tokenizer = BertTokenizer.from_pretrained(model_checkpoint_dir, bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
+
+        return self.model, self.optimizer, self.previous_num_epoch, self.criterion, self.tokenizer
+    
     
 
     

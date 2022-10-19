@@ -1,4 +1,5 @@
 {
+  "_name_or_path": "uclanlp/visualbert-vcr",
   "architectures": [
     "VisualBertForMultipleChoice"
   ],

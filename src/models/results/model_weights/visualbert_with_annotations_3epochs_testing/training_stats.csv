@@ -1,4 +1,4 @@
 Training Loss,Training Accuracy,Valid. Loss,Valid. Accuracy,Training Time,Validation Time
-1.3931866955757142,"tensor(0.2400, device='cuda:0')",1.384574043750763,"tensor(0.2000, device='cuda:0')",0:00:18,0:00:14
-1.3896046566963196,"tensor(0.2400, device='cuda:0')",1.3827946734428407,"tensor(0.2200, device='cuda:0')",0:00:18,0:00:14
-1.3385640895366668,"tensor(0.3800, device='cuda:0')",1.3826218628883362,"tensor(0.2600, device='cuda:0')",0:00:18,0:00:14
+1.4063755226135255,"tensor(0.2600, device='cuda:0')",1.3860312104225159,"tensor(0.3200, device='cuda:0')",0:00:19,0:00:14
+1.3999288058280945,"tensor(0.2600, device='cuda:0')",1.3857419991493225,"tensor(0.2400, device='cuda:0')",0:00:19,0:00:14
+1.4079644203186035,"tensor(0.3000, device='cuda:0')",1.3855311632156373,"tensor(0.2200, device='cuda:0')",0:00:18,0:00:14
