@@ -95,7 +95,8 @@ class CustomDataLoaderVisualBERT(CustomDataLoader):
         text_encoding = self.tokenizer(prompts, choices, 
                                     return_tensors=self.return_tensors_type, 
                                     padding=True, max_length=self.max_length, 
-                                    truncation=True, add_special_tokens=True
+                                    # truncation=True, add_special_tokens=True
+                                    truncation=True
                                     )
 
         # Visual Embeddings

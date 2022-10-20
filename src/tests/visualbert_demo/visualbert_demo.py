@@ -115,10 +115,12 @@ for test_question in test_questions_for_url2:
         output_attentions=False,
     )
     # get prediction
+    print('/n/n/n')
     pred_vqa = output_vqa["logits"].argmax(-1)
     print(pred_vqa)
     print("Question:", test_question)
     print("prediction from VisualBert VQA:", vqa_answers[pred_vqa])
+    print(output_vqa)
 
 
 from transformers import BertTokenizer, VisualBertForQuestionAnswering
@@ -140,6 +142,8 @@ model = VisualBertForQuestionAnswering.from_pretrained("uclanlp/visualbert-vqa")
 outputs = model(**inputs)
 loss = outputs.loss
 scores = outputs.logits
-print(scores)
-print(scores.argmax(-1))
-print(vqa_answers[scores.argmax(-1)])
+# print(scores)
+# print(scores.argmax(-1))
+# print(vqa_answers[scores.argmax(-1)])
+
+print(vqa_answers[1841], vqa_answers[1842], vqa_answers[1843])
