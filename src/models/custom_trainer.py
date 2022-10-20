@@ -107,10 +107,6 @@ class VQAModel:
                 logger.info(f"{datetime.now()} -- [Model Training] Training... {self.model_type}")	
             
             total_train_loss = 0
-            total_train_accuracy = 0
-            total_train_f1 = 0
-            total_train_precision = 0
-            total_train_recall = 0
 
             total_confusion = {0:[0,0,0,0], 1:[0,0,0,0], 2:[0,0,0,0], 3:[0,0,0,0]}
 
@@ -167,13 +163,13 @@ class VQAModel:
                 # print('LOGITS!!!',logits, logits.shape)
                 # print(outputs)
 
-                train_acc = torch.sum(y_pred == labels_ind)
+                # train_acc = torch.sum(y_pred == labels_ind)
 
                 total_train_loss += batch_loss
                 logger.info(f'LOSS:  {loss}, {batch_loss}, {total_train_loss}')
-                logger.info(f'Predicted: {y_pred}, Target: {b_labels}, Accuracy: {train_acc}')
+                logger.info(f'Predicted: {y_pred}, Target: {b_labels}')
 
-                total_train_accuracy += train_acc
+                # total_train_accuracy += train_acc
 
                 total_confusion[labels_ind.item()][y_pred.item()] += 1
 
@@ -212,18 +208,10 @@ class VQAModel:
 
             # Calculate the average loss over all of the batches.
             avg_train_loss = total_train_loss / len(self.train_data_loader)
-            avg_train_accuracy = total_train_accuracy/len(self.train_data_loader)
-
-            print('\n\n\nTOTAL_TRAIN_ACCURACY', total_train_accuracy)
-            print('avg_train_accuracy', avg_train_accuracy)
-            print('len dataloader', len(self.train_data_loader))
+            # avg_train_accuracy = total_train_accuracy/len(self.train_data_loader)
 
             total_confusion_matrix = np.vstack((np.array(total_confusion[0]), np.array(total_confusion[1]), np.array(total_confusion[2]), np.array(total_confusion[3])))
-            precision, recall, specificity, accuracy, F1_score, total_accuracy = self.calculate_scores_from_confusion_matrix(total_confusion_matrix)
-
-            print('I AM CONFUSION!!', total_confusion_matrix)       
-            print('I AM CONFUSION METRICS!!',precision, recall, specificity, accuracy, F1_score)    
-            print('I AM CONFUSION METRICS!!',total_accuracy)    
+            precision, recall, specificity, accuracy, F1_score, avg_train_accuracy, total_precision, total_recall, total_specificity, total_F1_score = self.calculate_scores_from_confusion_matrix(total_confusion_matrix)
 
             # # Measure how long this epoch took.
             training_time = self.format_time(time.time() - t0)
@@ -251,7 +239,6 @@ class VQAModel:
             self.model.eval()
 
             total_eval_loss = 0
-            total_eval_accuracy = 0
             nb_eval_steps = 0
 
             # Evaluate data for one epoch
@@ -278,15 +265,18 @@ class VQAModel:
 
                 y_pred = logits.argmax(-1)
                 labels_ind = b_labels.argmax(-1)
-                val_acc = torch.sum(y_pred == labels_ind)
+                # val_acc = torch.sum(y_pred == labels_ind)
 
                 total_eval_loss += batch_loss
-                total_eval_accuracy += val_acc
+                # total_eval_accuracy += val_acc
                 logger.info(f'[Model Validation] - LOSS: {loss}, {batch_loss}, {total_eval_loss}')
-                logger.info(f'[Model Validation] - Predicted: {y_pred}, Target: {b_labels}, Accuracy: {val_acc}')
+                logger.info(f'[Model Validation] - Predicted: {y_pred}, Target: {b_labels}')
 
             avg_val_loss = total_eval_loss / len(self.valid_data_loader)
-            avg_val_accuracy = total_eval_accuracy / len(self.valid_data_loader)
+            # avg_val_accuracy = total_eval_accuracy / len(self.valid_data_loader)
+
+            total_confusion_matrix_eval = np.vstack((np.array(total_confusion[0]), np.array(total_confusion[1]), np.array(total_confusion[2]), np.array(total_confusion[3])))
+            precision_eval, recall_eval, specificity_eval, accuracy_eval, F1_score_eval, avg_val_accuracy, total_precision_eval, total_recall_eval, total_specificity_eval, total_F1_score_eval = self.calculate_scores_from_confusion_matrix(total_confusion_matrix_eval)
             
             validation_time = self.format_time(time.time() - t0)    
 
@@ -304,8 +294,26 @@ class VQAModel:
                     'epoch': epoch + 1,
                     'Training Loss': avg_train_loss,
                     'Training Accuracy': avg_train_accuracy,
+                    'Training Precision': total_precision,
+                    'Training Recall': total_recall,
+                    'Training Specificity': total_specificity,
+                    'Training F-1 Score': total_F1_score,
+                    'Training Class Precision': precision,
+                    'Training Class Recall': recall,
+                    'Training Class Specificity': specificity,
+                    'Training Class Accuracy': accuracy,
+                    'Training Class F-1 Score': F1_score,
                     'Valid. Loss': avg_val_loss,
                     'Valid. Accuracy': avg_val_accuracy,
+                    'Valid. Precision': total_precision_eval,
+                    'Valid. Recall': total_recall_eval,
+                    'Valid. Specificity': total_specificity_eval,
+                    'Valid. F-1 Score': total_F1_score_eval,
+                    'Valid. Class Precision': precision_eval,
+                    'Valid. Class Recall': recall_eval,
+                    'Valid. Class Specificity': specificity_eval,
+                    'Valid. Class Accuracy': accuracy_eval,
+                    'Valid. Class F-1 Score': F1_score_eval,
                     'Training Time': training_time,
                     'Validation Time': validation_time
                 }
@@ -382,21 +390,22 @@ class VQAModel:
             temp = np.delete(temp, i, 1)  # delete ith column
             TN.append(sum(sum(temp)))
 
-        l = 50
-        for i in range(num_classes):
-            print(TP[i] + FP[i] + FN[i] + TN[i] == l)
+        # l = 50
+        # for i in range(num_classes):
+        #     print(TP[i] + FP[i] + FN[i] + TN[i] == l)
 
         precision = TP/(TP+FP)
-        # total_precision = 
+        total_precision = sum(precision)/num_classes
         recall = TP/(TP+FN)
-        # total_recall = 
+        total_recall = sum(recall)/num_classes
         specificity = TN/(TN+FP)
-        # total_specificity = 
+        total_specificity = sum(specificity)/num_classes
         accuracy = (TP) / (TP+FP)
         total_accuracy = sum(TP) / sum((TP+FP))
         F1_score = 2 * (precision * recall)/(precision + recall)
+        total_F1_score = sum(F1_score) / num_classes
 
-        return precision, recall, specificity, accuracy, F1_score, total_accuracy
+        return precision, recall, specificity, accuracy, F1_score, total_accuracy, total_precision, total_recall, total_specificity, total_F1_score
     
     def format_time(self, elapsed):
         '''
