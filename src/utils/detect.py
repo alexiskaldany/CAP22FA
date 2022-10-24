@@ -21,7 +21,7 @@ sys.path.insert(0, path)
 from src.utils.prepare_and_download import get_data_objects, create_dataframe
 # print(DATA_DIRECTORY)
 # from src.utils.answer_filtering import has_only_one_word_answers
-
+from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER
 # """
 # Set logger
 # """
@@ -39,22 +39,16 @@ import torch
 import matplotlib.pyplot as plt
 import json
 import detectron2
-# from detectron2.modeling import build_model
 from detectron2.checkpoint import DetectionCheckpointer
-from detectron2.structures.image_list import ImageList
-from detectron2.data import transforms as T
-from detectron2.modeling.box_regression import Box2BoxTransform
+
 from detectron2.modeling import build_model
-from detectron2.modeling.roi_heads.fast_rcnn import FastRCNNOutputs
-from detectron2.structures.boxes import Boxes
-from detectron2.layers import nms
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from PIL import Image
 
 
 
-combined_list = get_data_objects("/Users/alexiskaldany/school/CAP22FA/src/data/ai2d/annotations", "/Users/alexiskaldany/school/CAP22FA/src/data/ai2d/images","/Users/alexiskaldany/school/CAP22FA/src/data/ai2d/questions" )
+combined_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER,QUESTIONS_FOLDER )
 data_df = create_dataframe(combined_list)
 
 """ 

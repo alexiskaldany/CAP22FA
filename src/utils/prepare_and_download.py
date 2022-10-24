@@ -151,10 +151,10 @@ if __name__ == "__main__":
 
     # get current directory
     path = os.getcwd()
-    parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
+    # parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
 
     # add src to executable path to allow imports from src
-    sys.path.insert(0, parent_path)
+    sys.path.insert(0, path)
 
     from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER
     from src.utils.applying_annotations import execute_full_set_annotation
