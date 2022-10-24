@@ -1,3 +1,10 @@
+"""
+annotation_to_string.py
+Creates a string from each annotation json
+author: @alexiskaldany, @justjoshtings
+created: 10/23/22
+"""
+
 from copy import deepcopy
 import json
 import os
@@ -11,22 +18,6 @@ path = os.getcwd()
 # parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
 # add src to executable path to allow imports from src
 sys.path.insert(0, path)
-
-from src.utils.configs import (
-    DATA_JSON,
-    DATA_CSV,
-    DATA_DIRECTORY,
-    ANNOTATION_FOLDER,
-    IMAGES_FOLDER,
-    QUESTIONS_FOLDER,
-    ANNOTATED_IMAGES_FOLDER,
-    TEST_DIRECTORY,
-    TEST_IMAGE_OUTPUT,
-)
-from src.utils.prepare_and_download import get_data_objects, create_dataframe
-from src.utils.applying_annotations import execute_full_set_annotation
-from src.utils.visual_embeddings import get_multiple_embeddings
-from src.utils.pre_process import create_train_val_test_split
 from src.utils.configs import RANDOM_STATE, DATA_DIRECTORY
 
 # print(DATA_DIRECTORY)

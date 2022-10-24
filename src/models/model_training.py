@@ -20,6 +20,8 @@ import math
 from custom_dataloader import CustomDataLoaderVisualBERT
 from custom_trainer import Model_VisualBERT
 from torch.utils.data import Dataset, DataLoader
+import warnings
+warnings.filterwarnings("ignore")
 
 # get current directory
 path = os.getcwd()
@@ -92,12 +94,12 @@ tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|star
 Prep for custom dataloader
 '''
 # Select only the first train_ind_to_run samples just for testing training loop purposes
-train_ind_to_run = len(train_df)
-val_ind_to_run = len(val_df)
-test_ind_to_run = len(test_df)
-# train_ind_to_run = 50
-# val_ind_to_run = 50
-# test_ind_to_run = 50
+# train_ind_to_run = len(train_df)
+# val_ind_to_run = len(val_df)
+# test_ind_to_run = len(test_df)
+train_ind_to_run = 2500
+val_ind_to_run = 500
+test_ind_to_run = 500
 
 logger.info(f"Preparing data for custom dataloader")
 
@@ -148,33 +150,33 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
 								model_type='visualbert',
                                 log_file=logger)
 
-training_experiment_name = 'RUN_1_4epochs'
+training_experiment_name = 'annotation_strings'
 # training_experiment_name = 'with_annotations_3epochs_testing'
 
 model_visualbert.set_train_parameters(num_epochs=4, lr=5e-5, previous_num_epoch=0)
-# model_visualbert.train(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
-# model_visualbert.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+model_visualbert.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
+model_visualbert.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 '''
 Load from checkpoint to continue training
 '''
-model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
+# model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
 
-training_experiment_name = 'RUN_1_8epochs'
-model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
-								train_data_loader=visualbert_train_data_loader,
-								valid_data_loader=visualbert_valid_data_loader,
-								test_data_loader=visualbert_test_data_loader,
-								model_type='visualbert',
-                                log_file=logger,
-                                criterion=criterion_from_checkpoint, 
-                                model=model_from_checkpoint,
-                                tokenizer=tokenizer_from_checkpoint
-                                )
+# training_experiment_name = 'RUN_1_8epochs'
+# model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
+# 								train_data_loader=visualbert_train_data_loader,
+# 								valid_data_loader=visualbert_valid_data_loader,
+# 								test_data_loader=visualbert_test_data_loader,
+# 								model_type='visualbert',
+#                                 log_file=logger,
+#                                 criterion=criterion_from_checkpoint, 
+#                                 model=model_from_checkpoint,
+#                                 tokenizer=tokenizer_from_checkpoint
+#                                 )
 
-model_visualbert_checkpoint.set_train_parameters(num_epochs=4, lr=5e-5, optimizer=optimizer_from_checkpoint, previous_num_epoch=previous_num_epoch)
-model_visualbert_checkpoint.train(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
-model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+# model_visualbert_checkpoint.set_train_parameters(num_epochs=4, lr=5e-5, optimizer=optimizer_from_checkpoint, previous_num_epoch=previous_num_epoch)
+# model_visualbert_checkpoint.train(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
+# model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 
 '''
