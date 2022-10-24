@@ -4,7 +4,7 @@ import os
 from loguru import logger
 import sys
 import random
-
+import pandas as pd
 # get current directory
 path = os.getcwd()
 # parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
@@ -26,16 +26,16 @@ from src.utils.prepare_and_download import get_data_objects, create_dataframe
 from src.utils.applying_annotations import execute_full_set_annotation
 from src.utils.visual_embeddings import get_multiple_embeddings
 from src.utils.pre_process import create_train_val_test_split
-from src.utils.configs import RANDOM_STATE
-
+from src.utils.configs import RANDOM_STATE, DATA_DIRECTORY
+print(DATA_DIRECTORY)
 # from src.utils.answer_filtering import has_only_one_word_answers
 
 random_state = RANDOM_STATE
 object_list = ["connector", "destination", "origin"]
 category_list = [
-    "arrowDescriptor",
+    "arrowDescriptor", # done
     "intraObjectTextLinkage", # done
-    "arrowHeadTail",
+    "arrowHeadTail", # done
     "intraObjectLinkage", # done
     "intraObjectLabel", # done
     "imageTitle", # done
@@ -43,7 +43,7 @@ category_list = [
     "sectionTitle", # done
     "interObjectLinkage", # done
     "intraObjectRegionLabel", # 
-    "imageCaption",
+    "imageCaption", # done
 ]
 
 """
@@ -51,30 +51,33 @@ Set logger
 """
 logger.remove()
 logger.add(
-    "./logs/training_log.txt",
-    # sys.stdout,
+    # "./logs/training_log.txt",
+    sys.stdout,
     format="{time:YYYY-MM-DD HH:mm:ss}|{level}| {message}|{function}: {line}",
-    level="INFO",
+    level="DEBUG",
     backtrace=True,
     colorize=True,
 )
 
 """ 
 1. Each relationship will be its own string.
-2. Syntactic structure of that string will depoend on `category` of relationship.
+2. Sy
 
+
+TODO:
+1. Consider some sort of post processing of the combined string (remove multiple periods, etc.)
 """
 
 
 """
 Load data
 """
-combined_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER)
-data_df = create_dataframe(combined_list)
-data_df["annotations_path"] = data_df["image_path"].str.replace("images", "annotations")
-data_df["annotations_path"] = data_df["annotations_path"].str.replace(
-    ".png", ".png.json"
-)
+# combined_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER)
+# data_df = create_dataframe(combined_list)
+# data_df["annotations_path"] = data_df["image_path"].str.replace("images", "annotations")
+# data_df["annotations_path"] = data_df["annotations_path"].str.replace(
+#     ".png", ".png.json"
+# )
 
 """ 
 Function which reads annotations path and returns dictionary
@@ -82,22 +85,26 @@ Function which reads annotations path and returns dictionary
 
 
 def read_annotation_json(annotation_path: str) -> dict:
-    with open(annotation_path) as f:
-        data = json.load(f)
-    return data
+    try:
+        with open(annotation_path, "r") as f:
+            data = json.load(f)
+        return data
+    except:
+        logger.exception(f"Error reading annotation file: {annotation_path}")
 
 
 """ 
 Function which generates a list of relationships 
 """
 
-
 def get_relationships(dict: dict) -> list:
-    relationships = dict["relationships"]
-    relationship_list = []
-    for k, v in relationships.items():
-        relationship_list.append(v)
-    return relationship_list
+    if "relationships" in dict.keys():
+        relationship_list = []
+        for k, v in dict['relationships'].items():
+            relationship_list.append(v)
+        return relationship_list
+    else:
+        return None
 
 
 """ Create list of text labels"""
@@ -172,7 +179,7 @@ def interObjectLinkage_string(relationship: dict) -> str:
     "interObjectLinkage"
     """
     if relationship['origin_text'] != '' and relationship['destination_text'] != '':
-        return f"{relationship['origin_text']} object links to {relationship['destination_text']} "
+        return f"{relationship['origin_text']} object links to {relationship['destination_text']}."
     else:
         return None
 
@@ -229,7 +236,7 @@ def intraObjectTextLinkage_string(relationship: dict) -> str:
     "intraObjectTextLinkage"
     """
     if relationship['origin_text'] != '' and relationship['destination_text'] != '':
-        return f"{relationship['origin_text']} refers to {relationship['destination_text']}"
+        return f"{relationship['origin_text']} refers to {relationship['destination_text']}."
     else:
         return None
 
@@ -246,49 +253,171 @@ def Title_string(relationship: dict) -> str:
     "sectionTitle"
     """
     if relationship['origin_text'] != '' and relationship['category'] == 'imageTitle':
-        return f"The title of the image is {relationship['origin_text']}"
+        return f"The title of the image is {relationship['origin_text']}."
     elif relationship['origin_text'] != '' and relationship['category'] == 'sectionTitle':
-        return f"The title of the section is {relationship['origin_text']}"
+        return f"The title of the section is {relationship['origin_text']}."
     else:
         return None
+    
+"""
+A function for imageCaption
+"""
+
+def imageCaption_string(relationship: dict) -> str:
+    """
+    Image Caption: A text box that adds information about the entire image, but does not serve as the image title.
+    
+    "imageCaption"
+    """
+    if relationship['origin_text'] != '':
+        return f"The image caption is {relationship['origin_text']}."
+    else:
+        return None
+    
+""" 
+A function for arrowDescriptor
+"""
+
+def arrowDescriptor_string(relationship: dict) -> str:
+    """
+    Arrow Descriptor: A text box describing a process that an arrow refers to.
+    
+    "arrowDescriptor"
+    """
+    if relationship['origin_text'] != '':
+        return f"{relationship['origin_text']} is process described by arrow."
+    else:
+        return None
+
+""" 
+A function for arrowHeadTail
+"""
+def arrowHeadTail_string(relationship: dict) -> str:
+    """
+    Arrow Head Assignment: An arrow head associated to an arrow tail.
+    
+    "arrowHeadTail"
+    """
+    if relationship['origin_text'] != '':
+        return f"{relationship['origin_text']} is arrow head associated to arrow tail."
+    else:
+        return None
+
+""" 
+A function for misc
+"""
+
+def misc_string(relationship: dict) -> str:
+    """
+    Image Misc: Decorative elements in the diagram.
+    
+    "misc"
+    """
+    if relationship['origin_text'] != '':
+        return f"{relationship['origin_text']} is misc information."
+    else:
+        return None
+
 """ 
 Master function which determines `category` of relationship and branches off depending on `category` value
 """
 
 def category_to_string(relationships: list) -> list:
-    relationships_copy = relationships.copy()
-    for relationship in relationships:
-        category = relationship["category"]
-    pass
+    """
+    Input: relationships list, 
+    updates each relationship dictionary with a string value
+    Output: relationships list with string value for each relationship
+    """
 
+    for relationship in relationships:
+        if relationship['category'] == 'interObjectLinkage':
+            relationship['string'] = interObjectLinkage_string(relationship)
+        elif relationship['category'] == 'intraObjectLinkage' or relationship['category'] == 'intraObjectLabel' or relationship['category'] == 'intraObjectRegionLabel':
+            relationship['string'] = intraObjectLinkage_string(relationship)
+        elif relationship['category'] == 'intraObjectTextLinkage':
+            relationship['string'] = intraObjectTextLinkage_string(relationship)
+        elif relationship['category'] == 'imageTitle' or relationship['category'] == 'sectionTitle':
+            relationship['string'] = Title_string(relationship)
+        elif relationship['category'] == 'imageCaption':
+            relationship['string'] = imageCaption_string(relationship)
+        elif relationship['category'] == 'arrowDescriptor':
+            relationship['string'] = arrowDescriptor_string(relationship)
+        elif relationship['category'] == 'arrowHeadTail':
+            relationship['string'] = arrowHeadTail_string(relationship)
+        elif relationship['category'] == 'misc':
+            relationship['string'] = misc_string(relationship)
+        else:
+            relationship['string'] = None
+    return relationships
+
+
+""" 
+A function with concatenates all relationship strings into one string
+"""
+
+def combine_relationship_strings(relationships: list) -> str:
+    """
+    Input: relationships list, 
+    Output: string with all relationship strings concatenated
+    """
+    relationship_strings = [relationship['string'] for relationship in relationships if relationship['string'] != None]
+    return ' '.join(relationship_strings)
 
 """ 
 Create a per annotation_path master function
 """
-
-
-def get_annotations_dict(annotation_path: str) -> str:
-    constructed_dict = {}
+def get_relationship_string(annotation_path: str) -> str:
+    index = int(annotation_path.split('/')[-1].split('.')[0])
+    if index % 500 == 0:
+        logger.info(index)
+        logger.info(annotation_path)
     annotation_dict = read_annotation_json(annotation_path)
+    if annotation_dict == None:
+        return ""
     relationships = get_relationships(annotation_dict)
+    if relationships == None:
+        return ""
     text = get_text(annotation_dict)
     relationships_with_text = add_text_values_to_relationships(relationships, text)
     relationships_with_text_and_keys = match_text_to_relationship_keys(
         relationships_with_text
     )
-    pass
+    relationships_with_string = category_to_string(relationships_with_text_and_keys)
+    combined_string = combine_relationship_strings(relationships_with_string)
+    return combined_string
 
+"""
+Create model_training.py level master function
+"""
 
+def get_relationship_strings(df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Input: dataframe with annotation_path column
+    Output: dataframe with relationship_string column
+    """
+    df["annotations_path"] = df["image_path"].str.replace("images", "annotations")
+    df["annotations_path"] = df["annotations_path"].str.replace(
+    ".png", ".png.json")
+    logger.debug(f"{df['annotations_path'][:5]}")
+    df['relationship_string'] = df['annotations_path'].apply(get_relationship_string)
+    return df
 """ 
 Test 
 """
-
-data_df_test = data_df.sample(1000, random_state=random_state)
-category = []
-for index, row in data_df_test.iterrows():
-    annotation_path = row["annotations_path"]
-    relationships_with_text = get_annotations_dict(annotation_path)
-    # [print(relationship) for relationship in relationships_with_text if relationship['category'] == 'sectionTitle' and relationship != None]
+combined_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER)
+data_df = create_dataframe(combined_list)
+# data_df['annotated_image_path'] = data_df['image_path'].str.replace('images','annotated_images')
+data_df = get_relationship_strings(data_df)
+data_df.to_csv(str(DATA_DIRECTORY)+"/data_df_test.csv", index=False)
+# data_df_test = data_df.sample(1000, random_state=random_state)
+# strings = []
+# for index, row in data_df_test.iterrows():
+#     annotation_path = row["annotations_path"]
+#     strings.append(get_relationship_string(annotation_path))
+# data_df_test["relationship_string"] = strings
+# data_df_test.to_csv(str(DATA_DIRECTORY)+"/data_df_test.csv", index=False)
+    # relationships_with_text = get_annotations_dict(annotation_path)
+    # [print(relationship) for relationship in relationships_with_text if relationship['category'] == 'misc']
     # categories = [relationship["category"] for relationship in relationships_with_text]
     # category.extend(categories)
 # from collections import Counter

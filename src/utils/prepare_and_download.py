@@ -96,7 +96,9 @@ def get_data_objects(ANNOTATION_FOLDER,IMAGES_FOLDER,QUESTIONS_FOLDER):
     img_number = len(image_ids)
     logger.info(f"Number of images: {img_number}")
     combined_list = []
-    for id in id_list:
+    for index,id in enumerate(id_list):
+        if index % 1000 == 0:
+            logger.info(f"Processed {index} IDs")
         try:
             image_dict = {"image_path": image_path_dict[id]}
         except:
@@ -126,7 +128,9 @@ def create_dataframe(data_list:list):
         df (Pandas df): dataframe of data with image path, annotations, questions and answers
     '''
     list_of_dicts = []
-    for data in data_list:
+    for index,data in enumerate(data_list):
+        if index % 1000 == 0:
+            logger.info(f"Processing image number: {index}")
         image_id = data[2]["imageName"].split(".")[0]
         image_path = data[0]["image_path"]
         img_dict = {"image_id": image_id, "image_path": image_path}
