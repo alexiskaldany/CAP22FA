@@ -138,6 +138,7 @@ def create_train_val_test_split(data_df):
     logger.info(f"Train: {len(train_df)}")
     logger.info(f"Val: {len(val_df)}")
     logger.info(f"Test: {len(test_df)}")
+    
 
     return train_df, val_df, test_df
 
