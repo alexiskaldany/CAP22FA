@@ -126,9 +126,9 @@ visualbert_test_data_loader = DataLoader(visualbert_test_data, batch_size=1, shu
 # model_input_ids, model_token_type_ids, model_attention_mask, model_labels, model_visual_embeds, model_visual_attention_mask, model_visual_token_type_ids = training_dataloader[0]
 
 logger.info(f'Num Train:  {len(visualbert_train_data_loader)}, \
-	Num Validation:  {len(visualbert_train_data_loader)}, \
-	Num Test:  {len(visualbert_train_data_loader)}, \
-	Total Num:  {len(visualbert_train_data_loader)+len(visualbert_train_data_loader)+len(visualbert_train_data_loader)}')
+	Num Validation:  {len(visualbert_valid_data_loader)}, \
+	Num Test:  {len(visualbert_test_data_loader)}, \
+	Total Num:  {len(visualbert_train_data_loader)+len(visualbert_valid_data_loader)+len(visualbert_test_data_loader)}')
 
 model_visualbert = Model_VisualBERT(random_state=random_state, 
 								train_data_loader=visualbert_train_data_loader,
@@ -137,42 +137,36 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
 								model_type='visualbert',
                                 log_file=logger)
 
-training_experiment_name = 'RUN_1_4epochs'
+training_experiment_name = 'RUN_2_4epochs'
 # training_experiment_name = 'with_annotations_3epochs_testing'
 
 model_visualbert.set_train_parameters(num_epochs=4, lr=5e-5, previous_num_epoch=0)
-# model_visualbert.train(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
-# model_visualbert.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+model_visualbert.train(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
+model_visualbert.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 '''
 Load from checkpoint to continue training
 '''
-model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
+# model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
 
-training_experiment_name = 'RUN_1_8epochs'
-model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
-								train_data_loader=visualbert_train_data_loader,
-								valid_data_loader=visualbert_valid_data_loader,
-								test_data_loader=visualbert_test_data_loader,
-								model_type='visualbert',
-                                log_file=logger,
-                                criterion=criterion_from_checkpoint, 
-                                model=model_from_checkpoint,
-                                tokenizer=tokenizer_from_checkpoint
-                                )
+# training_experiment_name = 'RUN_2_8epochs'
+# model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
+# 								train_data_loader=visualbert_train_data_loader,
+# 								valid_data_loader=visualbert_valid_data_loader,
+# 								test_data_loader=visualbert_test_data_loader,
+# 								model_type='visualbert',
+#                                 log_file=logger,
+#                                 criterion=criterion_from_checkpoint, 
+#                                 model=model_from_checkpoint,
+#                                 tokenizer=tokenizer_from_checkpoint
+#                                 )
 
-model_visualbert_checkpoint.set_train_parameters(num_epochs=4, lr=5e-5, optimizer=optimizer_from_checkpoint, previous_num_epoch=previous_num_epoch)
-model_visualbert_checkpoint.train(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
-model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
-
+# model_visualbert_checkpoint.set_train_parameters(num_epochs=4, lr=5e-5, optimizer=optimizer_from_checkpoint, previous_num_epoch=previous_num_epoch)
+# # model_visualbert_checkpoint.train(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
+# model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 '''
 Inference Test
 '''
-# logger.info(f"Performing inference test")
-# # outputs = model(**inputs_dict)
-# # loss = outputs.loss
-# # logits = outputs.logits
-# # print(logits)
-# # print(logits.argmax(-1))
-# # print(answer_choices[logits.argmax(-1)])
+logger.info(f"Performing inference test")
+# model_visualbert_checkpoint.test(model_weights_dir=f'./results/model_weights/visualbert_{training_experiment_name}/testing_stats.csv')

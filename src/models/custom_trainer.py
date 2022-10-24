@@ -241,6 +241,8 @@ class VQAModel:
             total_eval_loss = 0
             nb_eval_steps = 0
 
+            total_confusion_eval = {0:[0,0,0,0], 1:[0,0,0,0], 2:[0,0,0,0], 3:[0,0,0,0]}
+
             # Evaluate data for one epoch
             for batch in self.valid_data_loader:
                 
@@ -267,6 +269,8 @@ class VQAModel:
                 labels_ind = b_labels.argmax(-1)
                 # val_acc = torch.sum(y_pred == labels_ind)
 
+                total_confusion_eval[labels_ind.item()][y_pred.item()] += 1
+
                 total_eval_loss += batch_loss
                 # total_eval_accuracy += val_acc
                 logger.info(f'[Model Validation] - LOSS: {loss}, {batch_loss}, {total_eval_loss}')
@@ -275,7 +279,7 @@ class VQAModel:
             avg_val_loss = total_eval_loss / len(self.valid_data_loader)
             # avg_val_accuracy = total_eval_accuracy / len(self.valid_data_loader)
 
-            total_confusion_matrix_eval = np.vstack((np.array(total_confusion[0]), np.array(total_confusion[1]), np.array(total_confusion[2]), np.array(total_confusion[3])))
+            total_confusion_matrix_eval = np.vstack((np.array(total_confusion_eval[0]), np.array(total_confusion_eval[1]), np.array(total_confusion_eval[2]), np.array(total_confusion_eval[3])))
             precision_eval, recall_eval, specificity_eval, accuracy_eval, F1_score_eval, avg_val_accuracy, total_precision_eval, total_recall_eval, total_specificity_eval, total_F1_score_eval = self.calculate_scores_from_confusion_matrix(total_confusion_matrix_eval)
             
             validation_time = self.format_time(time.time() - t0)    
@@ -418,6 +422,120 @@ class VQAModel:
             elapsed time in str
         '''
         return str(dt.timedelta(seconds=int(round((elapsed)))))
+
+    def test(self, model_weights_dir='./results/model_weights/testing_stats.csv'):
+
+        self.model.resize_token_embeddings(len(self.tokenizer))
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+        print('Using device..', device)
+        if self.LOGGING:
+            logger.info(f"{datetime.now()} -- [Model Testing] Using device {device}...")	
+
+        self.model.to(device)
+
+        progress_bar = tqdm(range(len(self.test_data_loader)))
+
+        total_t0 = time.time()
+        self.testing_stats = []
+
+        gc.collect()
+        torch.cuda.empty_cache()
+
+        print("")
+        print("Running Testing...")
+        if self.LOGGING:
+            logger.info(f"{datetime.now()} -- [Model Testing] Running Testing...")	
+
+        t0 = time.time()
+
+        self.model.eval()
+
+        total_eval_loss = 0
+        nb_eval_steps = 0
+
+        total_confusion_test = {0:[0,0,0,0], 1:[0,0,0,0], 2:[0,0,0,0], 3:[0,0,0,0]}
+
+        # Evaluate data for one epoch
+        for batch in self.test_data_loader:
+            b_input_ids = batch['input_ids'][0].to(device)
+            b_token_type_ids = batch['token_type_ids'][0].to(device)
+            b_attention_mask = batch['attention_mask'][0].to(device)
+
+            b_labels = batch['labels'][0].to(device)
+
+            b_visual_embeds = batch['visual_embeds'][0].to(device)
+            b_visual_attention_mask = batch['visual_attention_mask'][0].to(device)
+            b_visual_token_type_ids = batch['visual_token_type_ids'][0].to(device)
+
+            with torch.no_grad():        
+
+                outputs = self.model(input_ids=b_input_ids, attention_mask=b_attention_mask, token_type_ids=b_token_type_ids, visual_embeds=b_visual_embeds, visual_attention_mask=b_visual_attention_mask, visual_token_type_ids=b_visual_token_type_ids, labels=b_labels)
+            
+                loss = outputs[0]
+                logits = outputs[1]
+            
+            batch_loss = loss.item()
+
+            y_pred = logits.argmax(-1)
+            labels_ind = b_labels.argmax(-1)
+            # val_acc = torch.sum(y_pred == labels_ind)
+
+            total_confusion_test[labels_ind.item()][y_pred.item()] += 1
+
+            total_eval_loss += batch_loss
+            # total_eval_accuracy += val_acc
+            logger.info(f'[Model Testing] - LOSS: {loss}, {batch_loss}, {total_eval_loss}')
+            logger.info(f'[Model Testing] - Predicted: {y_pred}, Target: {b_labels}')
+
+            progress_bar.update(1)
+
+        avg_val_loss = total_eval_loss / len(self.valid_data_loader)
+        # avg_val_accuracy = total_eval_accuracy / len(self.valid_data_loader)
+
+        total_confusion_matrix_eval = np.vstack((np.array(total_confusion_test[0]), np.array(total_confusion_test[1]), np.array(total_confusion_test[2]), np.array(total_confusion_test[3])))
+        precision_eval, recall_eval, specificity_eval, accuracy_eval, F1_score_eval, avg_val_accuracy, total_precision_eval, total_recall_eval, total_specificity_eval, total_F1_score_eval = self.calculate_scores_from_confusion_matrix(total_confusion_matrix_eval)
+        
+        testing_time = self.format_time(time.time() - t0)    
+
+    #     print("  Testing Loss: {0:.2f}".format(avg_val_loss))
+    #     print("  Testing Perplexity: {0:.2f}".format(avg_val_perplexity))
+    #     print("  Testing took: {:}".format(testing_time))
+        if self.LOGGING:
+            logger.info(f"{datetime.now()} -- [Model Testing]   Testing Loss: {avg_val_loss}")	
+            logger.info(f"{datetime.now()} -- [Model Testing]   Testing Accuracy: {avg_val_accuracy}")	
+            logger.info(f"{datetime.now()} -- [Model Testing]     Testing took: {testing_time}")	
+
+        # Record all statistics from this epoch.
+        self.testing_stats.append(
+            {
+                'Index': 0,
+                'Test Loss': avg_val_loss,
+                'Test Accuracy': avg_val_accuracy,
+                'Test Precision': total_precision_eval,
+                'Test Recall': total_recall_eval,
+                'Test Specificity': total_specificity_eval,
+                'Test F-1 Score': total_F1_score_eval,
+                'Test Class Precision': precision_eval,
+                'Test Class Recall': recall_eval,
+                'Test Class Specificity': specificity_eval,
+                'Test Class Accuracy': accuracy_eval,
+                'Test Class F-1 Score': F1_score_eval,
+                'Testing Time': testing_time
+            }
+        )
+
+         # Create a DataFrame from our training statistics.
+        df_stats = pd.DataFrame(data=self.testing_stats)
+
+        df_stats = df_stats.set_index('Index')
+
+        df_stats.to_csv(model_weights_dir, index=False)
+
+        # Display the table.
+        print(df_stats.head(100))
+        logger.info(f'{df_stats.head(100)}')
+
 
     def get_training_stats(self, save_weights=True, model_weights_dir='./results/model_weights/training_stats.csv'):
         '''
