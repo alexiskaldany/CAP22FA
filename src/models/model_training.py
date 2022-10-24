@@ -23,9 +23,9 @@ from torch.utils.data import Dataset, DataLoader
 
 # get current directory
 path = os.getcwd()
-parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
+# parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
 # add src to executable path to allow imports from src
-sys.path.insert(0, parent_path)
+sys.path.insert(0, path)
 
 from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER, TEST_DIRECTORY, TEST_IMAGE_OUTPUT
 from src.utils.prepare_and_download import get_data_objects, create_dataframe
@@ -33,6 +33,8 @@ from src.utils.applying_annotations import execute_full_set_annotation
 from src.utils.visual_embeddings import get_multiple_embeddings
 from src.utils.pre_process import create_train_val_test_split
 from src.utils.configs import RANDOM_STATE
+from src.utils.annotation_to_string import get_relationship_strings
+
 # from src.utils.answer_filtering import has_only_one_word_answers
 
 random_state = RANDOM_STATE
@@ -62,6 +64,15 @@ data_df = create_dataframe(combined_list)
 
 data_df['annotated_image_path'] = data_df['image_path'].str.replace('images','annotated_images')
 
+## Testing questions combined with annotations
+
+data_df = get_relationship_strings(data_df)
+data_df['question'] = data_df['question'] + ' ' + data_df['relationship_string']
+question = data_df['question'].to_list()
+
+## Question must be less than 450 characters
+question = [question[i] if len(question[i]) < 450 else question[i][:450] for i in range(len(question))]
+data_df['question'] = question
 logger.info(f"All data loaded, columns = {data_df.keys()} and {len(data_df)} samples")
 
 '''
