@@ -73,7 +73,7 @@ def stitch_model_results(list_to_stitch, results_dir):
 Run stitching and call plotter
 '''
 plot_name = 'visualbert_annotations_full_run'
-results_to_stitch = ['visualbert_RUN_2_4epochs', 'visualbert_RUN_2_4epochs', 'visualbert_RUN_2_4epochs']
+results_to_stitch = ['visualbert_RUN_2_4epochs', 'visualbert_RUN_2_8epochs']
 results_dir = '/results/model_weights/'
 
 train_results_df, test_results_df  = stitch_model_results(results_to_stitch, results_dir)

@@ -149,7 +149,7 @@ Load from checkpoint to continue training
 '''
 model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
 
-training_experiment_name = 'RUN_2_8epochs'
+training_experiment_name = 'RUN_2_12epochs'
 model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
 								train_data_loader=visualbert_train_data_loader,
 								valid_data_loader=visualbert_valid_data_loader,

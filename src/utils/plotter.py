@@ -78,24 +78,28 @@ class Plotter:
         axs[0, 0].plot(results_df['epochs'], results_df['Valid. Precision'], color='orange')
         axs[0, 0].set_xlabel('Epochs')
         axs[0, 0].set_ylabel('Precision')
+        axs[0, 0].title.set_text('Precision')
         
         # Recall
         axs[0, 1].plot(results_df['epochs'], results_df['Training Recall'], color='blue')
         axs[0, 1].plot(results_df['epochs'], results_df['Valid. Recall'], color='orange')
         axs[0, 1].set_xlabel('Epochs')
         axs[0, 1].set_ylabel('Recall')
+        axs[0, 1].title.set_text('Recall')
 
         # Specificity
         axs[1, 0].plot(results_df['epochs'], results_df['Training Specificity'], color='blue')
         axs[1, 0].plot(results_df['epochs'], results_df['Valid. Specificity'], color='orange')
         axs[1, 0].set_xlabel('Epochs')
         axs[1, 0].set_ylabel('Specificity')
+        axs[1, 0].title.set_text('Specificity')
         
         # F1 Score
         axs[1, 1].plot(results_df['epochs'], results_df['Training F-1 Score'], color='blue')
         axs[1, 1].plot(results_df['epochs'], results_df['Valid. F-1 Score'], color='orange')
         axs[1, 1].set_xlabel('Epochs')
         axs[1, 1].set_ylabel('F1 Score')
+        axs[1, 1].title.set_text('F1 Score')
 
         
         plt.legend(['Training', 'Validation'], loc='lower right')
@@ -104,8 +108,67 @@ class Plotter:
         plt.show()
 
         # Plot Accuracy per Class
+        train_acc_A = [float(i.strip('][').split()[0]) for i in results_df['Training Class Accuracy'].tolist()]
+        train_acc_B = [float(i.strip('][').split()[1]) for i in results_df['Training Class Accuracy'].tolist()]
+        train_acc_C = [float(i.strip('][').split()[2]) for i in results_df['Training Class Accuracy'].tolist()]
+        train_acc_D = [float(i.strip('][').split()[3]) for i in results_df['Training Class Accuracy'].tolist()]
+
+        valid_acc_A = [float(i.strip('][').split()[0]) for i in results_df['Valid. Class Accuracy'].tolist()]
+        valid_acc_B = [float(i.strip('][').split()[1]) for i in results_df['Valid. Class Accuracy'].tolist()]
+        valid_acc_C = [float(i.strip('][').split()[2]) for i in results_df['Valid. Class Accuracy'].tolist()]
+        valid_acc_D = [float(i.strip('][').split()[3]) for i in results_df['Valid. Class Accuracy'].tolist()]
+
+        fig, axs = plt.subplots(2, 2, figsize=(16,10))
+        
+        # Class A
+        axs[0, 0].plot(results_df['epochs'], train_acc_A, color='blue')
+        axs[0, 0].plot(results_df['epochs'], valid_acc_A, color='orange')
+        axs[0, 0].set_xlabel('Epochs')
+        axs[0, 0].set_ylabel('Accuracy')
+        axs[0, 0].title.set_text('Class A')
+        axs[0, 0].set_ylim([0.2,0.3])
+
+        # Class B
+        axs[0, 1].plot(results_df['epochs'], train_acc_B, color='blue')
+        axs[0, 1].plot(results_df['epochs'], valid_acc_B, color='orange')
+        axs[0, 1].set_xlabel('Epochs')
+        axs[0, 1].set_ylabel('Accuracy')
+        axs[0, 1].title.set_text('Class B')
+        axs[0, 1].set_ylim([0.2,0.3])
+
+        # Class C
+        axs[1, 0].plot(results_df['epochs'], train_acc_C, color='blue')
+        axs[1, 0].plot(results_df['epochs'], valid_acc_C, color='orange')
+        axs[1, 0].set_xlabel('Epochs')
+        axs[1, 0].set_ylabel('Accuracy')
+        axs[1, 0].title.set_text('Class C')
+        axs[1, 0].set_ylim([0.2,0.3])
+        
+        # Class D
+        axs[1, 1].plot(results_df['epochs'], train_acc_D, color='blue')
+        axs[1, 1].plot(results_df['epochs'], valid_acc_D, color='orange')
+        axs[1, 1].set_xlabel('Epochs')
+        axs[1, 1].set_ylabel('Accuracy')
+        axs[1, 1].title.set_text('Class D')
+        axs[1, 1].set_ylim([0.2,0.3])
+
+        plt.legend(['Training', 'Validation'], loc='lower right')
+        fig.suptitle(self.plotname+': Class Accuracy')
+        plt.savefig(self.save_dir+'model_class_accuracy.png')
+        plt.show()
 
         # Plot Training and Validation Time
+        fig = plt.figure(figsize=(12,8))
+        ax = plt.axes()
+        ax.plot(results_df['epochs'], results_df['Training Time'], color='blue')
+        ax.plot(results_df['epochs'], results_df['Validation Time'], color='orange')
+        ax.set_xlabel('Epochs')
+        ax.set_ylabel('Execution Time')
+        ax.set_title(self.plotname+': Execution Time over Training Epochs')
+        plt.legend(['Training Time', 'Validation Time'])
+        plt.legend(['Training', 'Validation'], loc='lower right')
+        plt.savefig(self.save_dir+'model_time.png')
+        plt.show()
 
     def plot_model_test_results(self, results_df, save_dir, plotname):
         '''
