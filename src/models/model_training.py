@@ -32,7 +32,8 @@ sys.path.insert(0, path)
 from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER, TEST_DIRECTORY, TEST_IMAGE_OUTPUT
 from src.utils.prepare_and_download import get_data_objects, create_dataframe
 from src.utils.applying_annotations import execute_full_set_annotation
-from src.utils.visual_embeddings import get_multiple_embeddings
+# from src.utils.visual_embeddings import get_multiple_embeddings
+from src.utils.detect import get_visual_embeddings
 from src.utils.pre_process import create_train_val_test_split
 from src.utils.configs import RANDOM_STATE
 from src.utils.annotation_to_string import get_relationship_strings
@@ -46,8 +47,8 @@ Set logger
 '''
 logger.remove()
 logger.add(
-    "./logs/training_log.txt",
-    # sys.stdout,
+    # "./logs/training_log.txt",
+    sys.stdout,
     format="{time:YYYY-MM-DD HH:mm:ss}|{level}| {message}|{function}: {line}",
     level="INFO",
     backtrace=True,
@@ -86,7 +87,7 @@ train_df, val_df, test_df = create_train_val_test_split(data_df)
 Load tokenizer and visual embedders
 '''
 logger.info(f"Loading tokenizer and visual embedder")
-visual_embedder = get_multiple_embeddings
+visual_embedder = get_visual_embeddings
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|startoftext|>', eos_token='<|endoftext|>', pad_token='<|pad|>')
 # tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
@@ -97,9 +98,9 @@ Prep for custom dataloader
 # train_ind_to_run = len(train_df)
 # val_ind_to_run = len(val_df)
 # test_ind_to_run = len(test_df)
-train_ind_to_run = 2500
-val_ind_to_run = 500
-test_ind_to_run = 500
+train_ind_to_run = 50
+val_ind_to_run = 50
+test_ind_to_run = 50
 
 logger.info(f"Preparing data for custom dataloader")
 
@@ -150,7 +151,7 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
 								model_type='visualbert',
                                 log_file=logger)
 
-training_experiment_name = 'annotation_strings'
+training_experiment_name = 'annotation_strings_new_embeddings'
 # training_experiment_name = 'with_annotations_3epochs_testing'
 
 model_visualbert.set_train_parameters(num_epochs=4, lr=5e-5, previous_num_epoch=0)

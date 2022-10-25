@@ -12,7 +12,7 @@ from loguru import logger
 import sys
 import random
 import pandas as pd
-
+from pathlib import Path
 # get current directory
 path = os.getcwd()
 # parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
@@ -38,76 +38,54 @@ from torchvision import datasets, transforms
 import torch
 import matplotlib.pyplot as plt
 import json
-import detectron2
-from detectron2.checkpoint import DetectionCheckpointer
-
-from detectron2.modeling import build_model
-from detectron2 import model_zoo
-from detectron2.config import get_cfg
+import torch.nn as nn
 from PIL import Image
+from torchvision.models.resnet import resnet18 as _resnet18
 
 
 
-combined_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER,QUESTIONS_FOLDER )
-data_df = create_dataframe(combined_list)
-
-""" 
-Loading pretrained model
-"""
-cfg_path = "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml"
-
-def load_config_and_model_weights(cfg_path):
-    cfg = get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file(cfg_path))
-
-    # ROI HEADS SCORE THRESHOLD
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-
-    # Comment the next line if you're using 'cuda'
-    cfg['MODEL']['DEVICE']='cpu'
-
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(cfg_path)
-
-    return cfg
-
-cfg = load_config_and_model_weights(cfg_path)
+# combined_list = get_data_objects(ANNOTATION_FOLDER, IMAGES_FOLDER,QUESTIONS_FOLDER )
+# data_df = create_dataframe(combined_list)
 
 """ 
-Build Model
+Needs to be (1, 512)
 """
-def get_model(cfg):
-    # build model
-    model = build_model(cfg)
+# model = _resnet18(weights='DEFAULT')
+# modules=list(model.children())[:-1]
+# model=nn.Sequential(*modules)
 
-    # load weights
-    checkpointer = DetectionCheckpointer(model)
-    checkpointer.load(cfg.MODEL.WEIGHTS)
-
-    # eval mode
-    model.eval()
-    return model
-
-model = get_model(cfg)
-
-""" 
-Load and preprocess image
-"""
-
-def load_image_resize_convert(image_path):
+def get_visual_embeddings(image_path:str)-> torch.Tensor:
+    image_path = image_path[0]
+    image_id = Path(image_path).name.split(".")[0]
     preprocess = transforms.Compose([
     transforms.ToTensor(),transforms.Resize(size=(224,224)),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     input_tensor = preprocess(Image.open(image_path))
     input_batch = input_tensor.unsqueeze(0)
-    return input_batch
+    model = _resnet18(weights='DEFAULT')
+    modules=list(model.children())[:-1]
+    model=nn.Sequential(*modules)
+    embeddings = model(input_batch)
+    embeddings = embeddings[:,:,0,0]
+    embedding_dict = {image_id:embeddings}
+    return embedding_dict
+
+
+# image_paths = data_df['image_path']
+# torch.cuda.empty_cache()
+# model.eval()
+
+# embeddings = get_visual_embeddings(image_paths[443])
+# print(type(embeddings))
+# print(embeddings.shape)
 
 """ 
 Get features
 """
 
-def get_features(model, images):
-    features = model.backbone(images.tensor)
-    return features
+# def get_features(model, images):
+#     features = model.backbone(images.tensor)
+#     return features
 
-features = get_features(model, load_image_resize_convert(data_df['image_path'][0]))
-print(features['p2'].shape)
+# features = get_features(model, load_image_resize_convert(data_df['image_path'][0]))
+# print(features['p2'].shape)
