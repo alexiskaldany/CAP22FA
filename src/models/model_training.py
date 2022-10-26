@@ -137,7 +137,7 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
 								model_type='visualbert',
                                 log_file=logger)
 
-training_experiment_name = 'RUN_2_4epochs'
+training_experiment_name = 'RUN_2_8epochs'
 # training_experiment_name = 'with_annotations_3epochs_testing'
 
 model_visualbert.set_train_parameters(num_epochs=4, lr=5e-5, previous_num_epoch=0)
