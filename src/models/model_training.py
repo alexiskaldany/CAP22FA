@@ -151,7 +151,9 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
 								model_type='visualbert',
                                 log_file=logger)
 
-training_experiment_name = 'annotation_strings_new_embeddings'
+
+training_experiment_name = 'RUN_2_8epochs'
+
 # training_experiment_name = 'with_annotations_3epochs_testing'
 
 model_visualbert.set_train_parameters(num_epochs=4, lr=5e-5, previous_num_epoch=0)
@@ -164,8 +166,8 @@ Load from checkpoint to continue training
 '''
 model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
 
+training_experiment_name = 'RUN_2_12epochs'
 
-training_experiment_name = 'RUN_2_8epochs'
 model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
 								train_data_loader=visualbert_train_data_loader,
 								valid_data_loader=visualbert_valid_data_loader,
