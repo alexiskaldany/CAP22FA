@@ -25,9 +25,9 @@ warnings.filterwarnings("ignore")
 
 # get current directory
 path = os.getcwd()
-# parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
+parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
 # add src to executable path to allow imports from src
-sys.path.insert(0, path)
+sys.path.insert(0, parent_path)
 
 from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER, TEST_DIRECTORY, TEST_IMAGE_OUTPUT
 from src.utils.prepare_and_download import get_data_objects, create_dataframe
@@ -69,14 +69,14 @@ data_df['annotated_image_path'] = data_df['image_path'].str.replace('images','an
 
 ## Testing questions combined with annotations
 
-data_df = get_relationship_strings(data_df)
-data_df['question'] = data_df['question'] + ' ' + data_df['relationship_string']
-question = data_df['question'].to_list()
+# data_df = get_relationship_strings(data_df)
+# data_df['question'] = data_df['question'] + ' ' + data_df['relationship_string']
+# question = data_df['question'].to_list()
 
 ## Question must be less than 450 characters
-question = [question[i] if len(question[i]) < 450 else question[i][:450] for i in range(len(question))]
-data_df['question'] = question
-logger.info(f"All data loaded, columns = {data_df.keys()} and {len(data_df)} samples")
+# question = [question[i] if len(question[i]) < 450 else question[i][:450] for i in range(len(question))]
+# data_df['question'] = question
+# logger.info(f"All data loaded, columns = {data_df.keys()} and {len(data_df)} samples")
 
 '''
 Train/Test Split
@@ -95,12 +95,12 @@ tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", bos_token='<|star
 Prep for custom dataloader
 '''
 # Select only the first train_ind_to_run samples just for testing training loop purposes
-# train_ind_to_run = len(train_df)
-# val_ind_to_run = len(val_df)
-# test_ind_to_run = len(test_df)
-train_ind_to_run = 50
-val_ind_to_run = 50
-test_ind_to_run = 50
+train_ind_to_run = len(train_df)
+val_ind_to_run = len(val_df)
+test_ind_to_run = len(test_df)
+# train_ind_to_run = 50
+# val_ind_to_run = 50
+# test_ind_to_run = 50
 
 logger.info(f"Preparing data for custom dataloader")
 
@@ -152,21 +152,21 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
                                 log_file=logger)
 
 
-training_experiment_name = 'RUN_2_8epochs'
+training_experiment_name = 'RUN_2_20epochs'
 
 # training_experiment_name = 'with_annotations_3epochs_testing'
 
 model_visualbert.set_train_parameters(num_epochs=4, lr=5e-5, previous_num_epoch=0)
 
-model_visualbert.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
-model_visualbert.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+# model_visualbert.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
+# model_visualbert.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 '''
 Load from checkpoint to continue training
 '''
 model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
 
-training_experiment_name = 'RUN_2_12epochs'
+training_experiment_name = 'RUN_2_20epochs'
 
 model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
 								train_data_loader=visualbert_train_data_loader,
@@ -180,8 +180,8 @@ model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state,
                                 )
 
 model_visualbert_checkpoint.set_train_parameters(num_epochs=4, lr=5e-5, optimizer=optimizer_from_checkpoint, previous_num_epoch=previous_num_epoch)
-model_visualbert_checkpoint.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
-model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+# model_visualbert_checkpoint.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
+# model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 
 '''

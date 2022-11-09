@@ -6,7 +6,7 @@
   "eos_token": "<|endoftext|>",
   "mask_token": "[MASK]",
   "model_max_length": 512,
-  "name_or_path": "./results/model_weights/visualbert_RUN_2_8epochs/",
+  "name_or_path": "bert-base-uncased",
   "never_split": null,
   "pad_token": "<|pad|>",
   "sep_token": "[SEP]",
