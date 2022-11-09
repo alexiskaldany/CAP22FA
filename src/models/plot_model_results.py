@@ -73,13 +73,15 @@ def stitch_model_results(list_to_stitch, results_dir):
 Run stitching and call plotter
 '''
 plot_name = 'visualbert_annotations_full_run'
-results_to_stitch = ['visualbert_RUN_2_4epochs', 'visualbert_RUN_2_8epochs', 'visualbert_RUN_2_12epochs']
+results_to_stitch = ['visualbert_RUN_2_4epochs', 'visualbert_RUN_2_8epochs', 'visualbert_RUN_2_12epochs', 'visualbert_RUN_2_16epochs','visualbert_RUN_2_20epochs']
 results_dir = '/results/model_weights/'
 
-train_results_df, test_results_df  = stitch_model_results(results_to_stitch, results_dir)
+final_model_name = ' e'.join(results_to_stitch[-1].split('_')[-1].split('e'))
 
+train_results_df, test_results_df  = stitch_model_results(results_to_stitch, results_dir)
 model_results_plotter = Plotter('results_plotter')
-model_results_plotter.plot_model_train_results(train_results_df, save_dir=f'./results/plot_results/{plot_name}/', plotname='VisualBERT w/ Visual Annotations')
+# model_results_plotter.plot_model_train_results(train_results_df, save_dir=f'./results/plot_results/train_{plot_name}/', plotname='VisualBERT w/ Visual Annotations')
+model_results_plotter.plot_model_test_results(test_results_df, save_dir=f'./results/plot_results/test_{plot_name}/', plotname=f'VisualBERT w/ Visual Annotations - {final_model_name}')
 
     
 

@@ -521,6 +521,7 @@ class VQAModel:
                 'Test Class Specificity': specificity_eval,
                 'Test Class Accuracy': accuracy_eval,
                 'Test Class F-1 Score': F1_score_eval,
+                'Test Confusion Matrix': total_confusion_matrix_eval,
                 'Testing Time': testing_time
             }
         )

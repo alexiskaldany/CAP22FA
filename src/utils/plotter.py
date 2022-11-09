@@ -186,6 +186,39 @@ class Plotter:
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
+        print(results_df.head())
+        print(results_df.columns)
 
+        final_epoch_model = results_df.iloc[-1]
+
+        # Plot Overall Metrics Barchart
+        metrics_cat = ['Loss', 'Accuracy', 'Precision', 'Recall', 'Specificity', 'F1 Score']
+        metrics = [final_epoch_model['Test Loss'],final_epoch_model['Test Accuracy'],final_epoch_model['Test Precision'],final_epoch_model['Test Recall'],final_epoch_model['Test Specificity'],final_epoch_model['Test F-1 Score']]
+        
+        fig = plt.figure(figsize=(12,8))
+        ax = plt.axes()
+        ax.bar(metrics_cat, metrics, color='orange')
+        # ax.plot(results_df['epochs'], results_df['Training Loss'], color='blue')
+        # ax.plot(results_df['epochs'], results_df['Valid. Loss'], color='orange')
+        ax.set_xlabel('Metrics')
+        ax.set_ylabel('Metric Value')
+        ax.set_title(self.plotname+': Test Metrics')
+        # plt.legend(['Training', 'Validation'], loc='lower right')
+        plt.savefig(self.save_dir+'test_metrics.png')
+        plt.show()
+
+        # Plot Individual Class Metrics, 4 subplots precision accuracy recall f1 score
+
+        # Plot Confusion Matrix
+
+    def plot_test_results_comparison():
+
+        # Plot comparison bar plot of all overall metrics
+
+        # Plot comparison sub bar plots of the 4 classes
+
+        # Plot 3 confusion matrix vertical
+
+        pass
 
 
