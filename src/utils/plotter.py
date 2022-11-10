@@ -12,6 +12,10 @@ import sys
 from loguru import logger
 from pathlib import Path
 import os
+import re
+import seaborn as sns; sns.set_theme()
+sns.set(font_scale=2)
+
 
 class Plotter:
     '''
@@ -208,9 +212,93 @@ class Plotter:
         plt.show()
 
         # Plot Individual Class Metrics, 4 subplots precision accuracy recall f1 score
+        test_precision_A = [float(i.strip('][').split()[0]) for i in results_df['Test Class Precision'].tolist()][-1]
+        test_precision_B = [float(i.strip('][').split()[1]) for i in results_df['Test Class Precision'].tolist()][-1]
+        test_precision_C = [float(i.strip('][').split()[2]) for i in results_df['Test Class Precision'].tolist()][-1]
+        test_precision_D = [float(i.strip('][').split()[3]) for i in results_df['Test Class Precision'].tolist()][-1]
+
+        test_precision = [test_precision_A,test_precision_B,test_precision_C,test_precision_D]
+
+        test_recall_A = [float(i.strip('][').split()[0]) for i in results_df['Test Class Recall'].tolist()][-1]
+        test_recall_B = [float(i.strip('][').split()[1]) for i in results_df['Test Class Recall'].tolist()][-1]
+        test_recall_C = [float(i.strip('][').split()[2]) for i in results_df['Test Class Recall'].tolist()][-1]
+        test_recall_D = [float(i.strip('][').split()[3]) for i in results_df['Test Class Recall'].tolist()][-1]
+
+        test_recall = [test_recall_A,test_recall_B,test_recall_C,test_recall_D]
+
+        test_F1_A = [float(i.strip('][').split()[0]) for i in results_df['Test Class F-1 Score'].tolist()][-1]
+        test_F1_B = [float(i.strip('][').split()[1]) for i in results_df['Test Class F-1 Score'].tolist()][-1]
+        test_F1_C = [float(i.strip('][').split()[2]) for i in results_df['Test Class F-1 Score'].tolist()][-1]
+        test_F1_D = [float(i.strip('][').split()[3]) for i in results_df['Test Class F-1 Score'].tolist()][-1]
+
+        test_F1 = [test_F1_A,test_F1_B,test_F1_C,test_F1_D]
+        
+        test_acc_A = [float(i.strip('][').split()[0]) for i in results_df['Test Class Accuracy'].tolist()][-1]
+        test_acc_B = [float(i.strip('][').split()[1]) for i in results_df['Test Class Accuracy'].tolist()][-1]
+        test_acc_C = [float(i.strip('][').split()[2]) for i in results_df['Test Class Accuracy'].tolist()][-1]
+        test_acc_D = [float(i.strip('][').split()[3]) for i in results_df['Test Class Accuracy'].tolist()][-1]
+
+        test_acc = [test_acc_A,test_acc_B,test_acc_C,test_acc_D]
+
+        print(test_precision, test_recall, test_F1, test_acc)
+
+        fig, axs = plt.subplots(2, 2, figsize=(24,18))
+
+        cat = ['Class A', 'Class B', 'Class C', 'Class D']
+
+        # Accuracy
+        axs[0, 0].bar(cat, test_acc, color='blue')
+        axs[0, 0].set_xlabel('Class')
+        axs[0, 0].set_ylabel('Accuracy')
+        axs[0, 0].title.set_text('Class Accuracy on Test Set')
+        # axs[0, 0].set_ylim([0.2,0.3])
+        
+        # Precision
+        axs[0, 1].bar(cat, test_precision, color='blue')
+        axs[0, 1].set_xlabel('Class')
+        axs[0, 1].set_ylabel('Precision')
+        axs[0, 1].title.set_text('Class Precision on Test Set')
+        # axs[0, 1].set_ylim([0.2,0.3])
+
+        # Recall
+        axs[1, 0].bar(cat, test_recall, color='blue')
+        axs[1, 0].set_xlabel('Class')
+        axs[1, 0].set_ylabel('Recall')
+        axs[1, 0].title.set_text('Class Recall on Test Set')
+        # axs[1, 0].set_ylim([0.2,0.3])
+
+        # F1 Score
+        axs[1, 1].bar(cat, test_F1, color='blue')
+        axs[1, 1].set_xlabel('Class')
+        axs[1, 1].set_ylabel('F1 Score')
+        axs[1, 1].title.set_text('Class F1 Score on Test Set')
+        # axs[1, 1].set_ylim([0.2,0.3])
+
+        fig.suptitle(self.plotname+': Class Metrics on Test Set')
+        plt.savefig(self.save_dir+'test_class_accuracy.png')
+        plt.show()
 
         # Plot Confusion Matrix
+        cm = results_df['Test Confusion Matrix'].to_list()[-1].split('\n')
+        
+        first_row = [int(i) for i in re.findall("\d+", cm[0])]
+        second_row = [int(i) for i in re.findall("\d+", cm[1])]
+        third_row = [int(i) for i in re.findall("\d+", cm[2])]
+        fourth_row = [int(i) for i in re.findall("\d+", cm[3])]
+        
+        # print(cm)
 
+        cm = np.array([first_row,second_row,third_row,fourth_row])
+        classes = ['A', 'B', 'C', 'D']
+
+        fig = plt.figure(figsize=(24,18))
+        ax = plt.axes()
+
+        ax = sns.heatmap(cm, cmap="Blues", annot=True, xticklabels=classes, yticklabels=classes, cbar=False,  fmt='d')
+        ax.set(title=self.plotname+': Confusion Matrix on Test Set', xlabel="Predicted Label", ylabel="True Label")
+        plt.savefig(self.save_dir+'test_confusion_matrix.png')
+        plt.show()
+    
     def plot_test_results_comparison():
 
         # Plot comparison bar plot of all overall metrics
