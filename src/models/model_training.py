@@ -120,6 +120,32 @@ test_answers = test_df["answer"].to_list()[:test_ind_to_run]
 test_image_paths = test_df["annotated_image_path"].to_list()[:test_ind_to_run]
 
 '''
+Checking for Class Imbalance
+'''
+class_imba_train = []
+
+for i in range(len(train_answers)):
+    answer = train_answers[i]
+    class_imba_train.append(train_answer_choices[i].index(answer))
+
+print('\n\nTrain Class Imbalance Check: ', class_imba_train.count(0), class_imba_train.count(1), class_imba_train.count(2), class_imba_train.count(3))
+
+class_imba_val = []
+
+for i in range(len(val_answers)):
+    answer = val_answers[i]
+    class_imba_val.append(val_answer_choices[i].index(answer))
+
+print('val Class Imbalance Check: ', class_imba_val.count(0), class_imba_val.count(1), class_imba_val.count(2), class_imba_val.count(3))
+
+class_imba_test = []
+
+for i in range(len(test_answers)):
+    answer = test_answers[i]
+    class_imba_test.append(test_answer_choices[i].index(answer))
+
+print('test Class Imbalance Check: ', class_imba_test.count(0), class_imba_test.count(1), class_imba_test.count(2), class_imba_test.count(3))
+'''
 VisualBERT Model Training
 '''
 # Set up dataloader
@@ -188,6 +214,6 @@ model_visualbert_checkpoint.set_train_parameters(num_epochs=4, lr=5e-5, optimize
 Inference Test
 '''
 
-logger.info(f"Performing inference test")
-model_visualbert_checkpoint.test(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/testing_stats.csv')
+# logger.info(f"Performing inference test")
+# model_visualbert_checkpoint.test(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/testing_stats.csv')
 
