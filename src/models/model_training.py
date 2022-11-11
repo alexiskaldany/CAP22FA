@@ -81,7 +81,7 @@ data_df['annotated_image_path'] = data_df['image_path'].str.replace('images','an
 '''
 Train/Test Split
 '''
-train_df, val_df, test_df = create_train_val_test_split(data_df)
+train_df, val_df, test_df = create_train_val_test_split(data_df, path+'/test_ids.txt')
 
 '''
 Load tokenizer and visual embedders
