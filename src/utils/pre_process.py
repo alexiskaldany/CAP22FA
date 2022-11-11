@@ -14,6 +14,8 @@ import torch
 from src.utils.configs import *
 import random
 from loguru import logger
+import numpy as np
+import pandas as pd
 
 """ 
 Data
@@ -117,28 +119,35 @@ Loading Questions and Answers
 
 # TRAIN,VAL,TEST 
 
-def create_train_val_test_split(data_df):
+def create_train_val_test_split(data_df, test_ids_path):
     '''
     Params:
         data_df (pandas dataframe): dataframe of full dataset to split 
+        test_ids_path (str): path to test_ids.txt
     Returns:
         train_df (pandas dataframe): dataframe of split train dataset
         val_df (pandas dataframe): dataframe of split val dataset
         test_df (pandas dataframe): dataframe of split test dataset
     '''
     logger.info("Creating train, val, test split")
-    train_index = int(0.7 * len(data_df))
-    val_index = int(0.9 * len(data_df))
+
+    test_ids = np.loadtxt(test_ids_path, dtype='str')
+    # print(test_ids.shape,test_ids[0], type(test_ids[0]))
+    mask = data_df['image_id'].isin(test_ids.tolist())
+    test_df = data_df.loc[mask]
+    data_df = data_df.loc[~mask]
+    # print(len(test_df))
+    # print(len(data_df))
+
+    train_index = int(0.9 * len(data_df))
     data_df_shuffled = data_df.sample(frac = 1, random_state=RANDOM_STATE)
 
     train_df = data_df_shuffled.iloc[:train_index]
-    val_df = data_df_shuffled.iloc[train_index:val_index]
-    test_df = data_df_shuffled.iloc[val_index:]
+    val_df = data_df_shuffled.iloc[train_index:]
     
     logger.info(f"Train: {len(train_df)}")
     logger.info(f"Val: {len(val_df)}")
     logger.info(f"Test: {len(test_df)}")
     
-
     return train_df, val_df, test_df
 
