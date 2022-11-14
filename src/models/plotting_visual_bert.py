@@ -32,7 +32,9 @@ from src.utils.detect import get_visual_embeddings
 from src.utils.pre_process import create_train_val_test_split
 from src.utils.configs import RANDOM_STATE
 from src.utils.annotation_to_string import get_relationship_strings
-
+from transformers import VisualBertForMultipleChoice
+vbfmc = VisualBertForMultipleChoice.from_pretrained("uclanlp/visualbert-vcr")
+print(vbfmc.modules)
 # from src.utils.answer_filtering import has_only_one_word_answers
 
 random_state = RANDOM_STATE
