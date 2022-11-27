@@ -88,6 +88,10 @@ python3 plot_model_results.py
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/model_selection.png)
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/model_architecture01.png)
 
+# <a name="results"></a>
+## Results
+![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/testing_results.png)
+
 # <a name="presentation"></a>
 ## Presentation
 [Final Presentation Slides](https://docs.google.com/presentation/d/1lfzdVxZWlUQ4vNnbCHOezjhFXg0yBI1lov0G_AoEURI/edit?usp=sharing)
