@@ -40,10 +40,10 @@ Improve on [research](https://arxiv.org/pdf/1603.07396.pdf)<sup>1</sup> done in 
 
 # <a name="background"></a>
 ## Background and Related Works
-Original Paper:
+### Original Paper:
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/background01.png)
 
-What We Want to Try:
+### What We Want to Try:
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/background04.png)
 
 
@@ -51,15 +51,40 @@ What We Want to Try:
 ## How to Run
 
 ### Setup
+Execute model download and data preprocessing:
+```
+cd src/
+python3 main.py
+```
+
+### Modeling
+Execute model training for a specified model setup type:
+```
+cd src/models/
+python3 model_training.py
+```
+or to execute as background program:
+```
+cd src/models/
+nohup python3 model_training.py
+ps ax | grep "model_training.py"
+```
+
+### Plot Results
+Execute specified plot types for training and testing results:
+```
+cd src/models/
+python3 plot_model_results.py
+```
 
 # <a name="architecture"></a>
 ## Architecture
 
-Environment Architecture
+### Environment Architecture
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/env_architecture01.png)
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/env_architecture02.png)
 
-Model Architecture
+### Model Architecture
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/model_selection.png)
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/model_architecture01.png)
 
