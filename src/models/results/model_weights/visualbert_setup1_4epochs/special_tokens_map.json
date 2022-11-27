@@ -1,0 +1,9 @@
+{
+  "bos_token": "<|startoftext|>",
+  "cls_token": "[CLS]",
+  "eos_token": "<|endoftext|>",
+  "mask_token": "[MASK]",
+  "pad_token": "<|pad|>",
+  "sep_token": "[SEP]",
+  "unk_token": "[UNK]"
+}

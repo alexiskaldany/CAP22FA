@@ -196,8 +196,10 @@ class Plotter:
         final_epoch_model = results_df.iloc[-1]
 
         # Plot Overall Metrics Barchart
-        metrics_cat = ['Loss', 'Accuracy', 'Precision', 'Recall', 'Specificity', 'F1 Score']
-        metrics = [final_epoch_model['Test Loss'],final_epoch_model['Test Accuracy'],final_epoch_model['Test Precision'],final_epoch_model['Test Recall'],final_epoch_model['Test Specificity'],final_epoch_model['Test F-1 Score']]
+        # metrics_cat = ['Accuracy', 'Precision', 'Recall', 'Specificity', 'F1 Score']
+        metrics_cat = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
+        # metrics = [final_epoch_model['Test Accuracy'],final_epoch_model['Test Precision'],final_epoch_model['Test Recall'],final_epoch_model['Test Specificity'],final_epoch_model['Test F-1 Score']]
+        metrics = [final_epoch_model['Test Accuracy'],final_epoch_model['Test Precision'],final_epoch_model['Test Recall'],final_epoch_model['Test F-1 Score']]
         
         fig = plt.figure(figsize=(12,8))
         ax = plt.axes()
@@ -247,28 +249,28 @@ class Plotter:
         cat = ['Class A', 'Class B', 'Class C', 'Class D']
 
         # Accuracy
-        axs[0, 0].bar(cat, test_acc, color='blue')
+        axs[0, 0].bar(cat, test_acc, color='orange')
         axs[0, 0].set_xlabel('Class')
         axs[0, 0].set_ylabel('Accuracy')
         axs[0, 0].title.set_text('Class Accuracy on Test Set')
         # axs[0, 0].set_ylim([0.2,0.3])
         
         # Precision
-        axs[0, 1].bar(cat, test_precision, color='blue')
+        axs[0, 1].bar(cat, test_precision, color='orange')
         axs[0, 1].set_xlabel('Class')
         axs[0, 1].set_ylabel('Precision')
         axs[0, 1].title.set_text('Class Precision on Test Set')
         # axs[0, 1].set_ylim([0.2,0.3])
 
         # Recall
-        axs[1, 0].bar(cat, test_recall, color='blue')
+        axs[1, 0].bar(cat, test_recall, color='orange')
         axs[1, 0].set_xlabel('Class')
         axs[1, 0].set_ylabel('Recall')
         axs[1, 0].title.set_text('Class Recall on Test Set')
         # axs[1, 0].set_ylim([0.2,0.3])
 
         # F1 Score
-        axs[1, 1].bar(cat, test_F1, color='blue')
+        axs[1, 1].bar(cat, test_F1, color='orange')
         axs[1, 1].set_xlabel('Class')
         axs[1, 1].set_ylabel('F1 Score')
         axs[1, 1].title.set_text('Class F1 Score on Test Set')
@@ -299,14 +301,45 @@ class Plotter:
         plt.savefig(self.save_dir+'test_confusion_matrix.png')
         plt.show()
     
-    def plot_test_results_comparison():
+    def plot_test_results_comparison(self, results_df, save_dir, plotname):
+        '''
+        Method to plot model testing results and save
+        Params:
+            self: instance of object
+            results_df (pandas df): df of results to plot
+            save_dir (str): path to save plots to
+            plotname (str): name of plot to use
+        '''
+        self.save_dir = save_dir
+        self.plotname = plotname
 
-        # Plot comparison bar plot of all overall metrics
+        # Create output directory if needed
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
 
-        # Plot comparison sub bar plots of the 4 classes
+        print(results_df.head())
+        print(results_df.columns)
 
-        # Plot 3 confusion matrix vertical
+        metrics_cat = ['Setup 1:\nNo Annotations', 'Setup 2:\nw/ Visual Annotations', 'Setup 3:\nw/ Text Annotations', 'VQA', 'DQA-NET']
+        metrics = results_df['Test Accuracy'].to_list()
+        metrics.append(0.3290)
+        metrics.append(0.3847)
+        
+        fig = plt.figure(figsize=(24,16))
+        ax = plt.axes()
 
-        pass
+        colors = {'VisualBERT Models':'orange', 'Benchmark Models':'purple'}         
+        labels = list(colors.keys())
+        handles = [plt.Rectangle((0,0),1,1, color=colors[label]) for label in labels]
+        plt.legend(handles, labels)
+
+        ax.bar(metrics_cat, metrics, color='orange')
+        ax.get_children()[3].set_color('purple') 
+        ax.get_children()[4].set_color('purple') 
+        ax.set_xlabel('Model Setup Type', labelpad=30)
+        ax.set_ylabel('Accuracy', labelpad=30)
+        ax.set_title(self.plotname+': Accuracy')
+        plt.savefig(self.save_dir+'accuracy_comparison.png')
+        plt.show()
 
 
