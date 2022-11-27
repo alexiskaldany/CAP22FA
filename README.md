@@ -32,14 +32,20 @@ Improve on [research](https://arxiv.org/pdf/1603.07396.pdf)<sup>1</sup> done in 
 │ 
 ├── src                     # Main code directory
 │   ├── models              # Directory for models
-│   ├── utils               # Directory for utility functions
-│   └── ...                 # Lorem ipsum
-└── ...
+│   ├── tests               # Directory for doing R&D and code testings
+│   ├── utils               # Directory for utility functions to support project
+│ 
+└── requirements.txt        # Python package requirements
 ```
 
 # <a name="background"></a>
 ## Background and Related Works
-lorem ipsum - once we have more of a concrete plan we can start populating this that describes what's been done, why we're doing this, what type of things ppl tried etc.
+Original Paper:
+![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/background01.png)
+
+What We Want to Try:
+![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/background04.png)
+
 
 # <a name="instructions"></a>
 ## How to Run
@@ -48,17 +54,27 @@ lorem ipsum - once we have more of a concrete plan we can start populating this 
 
 # <a name="architecture"></a>
 ## Architecture
-lorem ipsum - for descriptions of both our cloud/software architecture and model architecture. will fill towards the end of project and can add some visual diagrams to help
+
+Environment Architecture
+![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/env_architecture01.png)
+![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/env_architecture02.png)
+
+Model Architecture
+![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/model_selection.png)
+![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/model_architecture01.png)
 
 # <a name="presentation"></a>
 ## Presentation
+[Final Presentation Slides](https://docs.google.com/presentation/d/1lfzdVxZWlUQ4vNnbCHOezjhFXg0yBI1lov0G_AoEURI/edit?usp=sharing)
 
 # <a name="paper"></a>
 ## Paper
+[Final Paper]()
 
 # <a name="references"></a>
 ## References
-1. [A Diagram is Worth a Dozen Images](https://arxiv.org/pdf/1603.07396.pdf)
+1. [Github Repo](https://github.com/alexiskaldany/CAP22FA)
+2. [A Diagram is Worth a Dozen Images](https://arxiv.org/pdf/1603.07396.pdf)
 ```
 @article{Kembhavi2016ADI,
   title={A Diagram is Worth a Dozen Images},
@@ -68,34 +84,29 @@ lorem ipsum - for descriptions of both our cloud/software architecture and model
   volume={abs/1603.07396}
 }
 ```
-2. [AI2 Diagram Dataset (AI2D)](https://aws.amazon.com/marketplace/pp/prodview-ueiyrmcy4rzdm#usage)
+3. [AI2 Diagram Dataset (AI2D)](https://aws.amazon.com/marketplace/pp/prodview-ueiyrmcy4rzdm#usage)
 ```
 AI2 Diagram Dataset (AI2D) was accessed on 9/5/2022 from https://registry.opendata.aws/allenai-diagrams.
 ```
-3. 
+4. Paper Code
+5. [VISUALBERT: A SIMPLE AND PERFORMANT BASELINE FOR VISION AND LANGUAGE, Li et al., 2019](https://arxiv.org/pdf/1908.03557.pdf)
+6. [ViLT: Vision-and-Language Transformer Without Convolution or Region Supervision. Kim et al., 2021](https://arxiv.org/abs/2102.03334)
+7. [LayoutLMv3: Pre-training for Document AI with Unified Text and Image Masking. Huang et al., 2022](https://arxiv.org/abs/2204.08387)
+8. [VisualBERT for Multiple Choice Hugging Face](https://huggingface.co/docs/transformers/v4.22.1/en/model_doc/visual_bert#transformers.VisualBertForMultipleChoice)
+9. [VisualBERT for Question Answering Hugging Face](https://huggingface.co/docs/transformers/v4.22.1/en/model_doc/visual_bert#transformers.VisualBertForQuestionAnswering)
+10. [VILT for Question Answering Hugging Face](https://huggingface.co/docs/transformers/model_doc/vilt#transformers.ViltForQuestionAnswering)
+11. [LayoutMV3 Hugging Face](https://huggingface.co/docs/transformers/v4.22.1/en/model_doc/layoutlmv3)
+12. [VisualBERT Demo](https://github.com/huggingface/transformers/blob/main/examples/research_projects/visual_bert/demo.ipynb)
+13. [BERT Multiple Choice Sample](https://github.com/huggingface/transformers/blob/main/examples/pytorch/multiple-choice/run_swag.py)
+14. [Fine Tuning on Multiple Choice Task](https://github.com/huggingface/notebooks/blob/main/examples/multiple_choice.ipynb)
+15. [Hugging Face](https://huggingface.co/models?pipeline_tag=visual-question-answering&sort=downloads)
+16. [PyTorch AdamW Optimizer](https://pytorch.org/docs/stable/generated/torch.optim.AdamW.html)
+17. [PyTorch Cross Entropy](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)
+18. Xinlei Chen, Hao Fang, Tsung-Yi Lin, Ramakrishna Vedantam, Saurabh Gupta, Piotr Dolla ́r, and C Lawrence Zitnick. Microsoft COCO captions: Data collection and evaluation server. arXiv preprint arXiv:1504.00325, 2015.
 
 # <a name="license"></a>
 ## Licensing
 * MIT License
 
-## MISC to put somewhere later
 
-### Data Standard Structure
-
-- `get_data_objects` in `src.utils.prepare_and_download` creates a list where each element is a list of three dicts:
-    1. The first dict is simply`{"image_path": "{DATA_DIRECTORY}/src/data/ai2d/images/0.png"}`. Use this to get the path to the image
-    2. The second object is the entire annotations json for that image.
-    >TODO: create functions that break down annotations into more useful elements
-    3. The third object is the entire questions json for that image.
-    >TODO: There can be multiple questions per images, so we'll need a function that breaks down this dictionary into a list with each element being a question 
-
-### Models
-
-- We should create a standard
-
-### Work done so far
-
-- Finished the annotation functions
-  1. Could use some touchups for the arrowheads
-- Close to finishing the functions which build the unified csv containing all the data the models need for training
-- Learned how to extract visual embeddings and how to work more closely with pre-trained models.
+'
