@@ -8,6 +8,7 @@ nohup.out
 *ignore*
 *checkpoint/
 *training_log.txt
+training_log.txt
 
 # C extensions
 *.so

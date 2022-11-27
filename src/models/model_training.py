@@ -20,6 +20,7 @@ import math
 from custom_dataloader import CustomDataLoaderVisualBERT
 from custom_trainer import Model_VisualBERT
 from torch.utils.data import Dataset, DataLoader
+import torch.nn.functional as F
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -47,8 +48,8 @@ Set logger
 '''
 logger.remove()
 logger.add(
-    # "./logs/training_log.txt",
-    sys.stdout,
+    "./logs/training_log.txt",
+    # sys.stdout,
     format="{time:YYYY-MM-DD HH:mm:ss}|{level}| {message}|{function}: {line}",
     level="INFO",
     backtrace=True,
@@ -161,6 +162,31 @@ VisualBERT Model Training
 # Set up dataloader
 
 logger.info(f"Setting up custom dataloaders")
+
+# def collate_fn(data):
+    # print(len(data), data[0]['input_ids'].shape, data[1]['input_ids'].shape)
+    # print(len(data), data[0]['token_type_ids'].shape, data[1]['token_type_ids'].shape)
+    # print(len(data), data[0]['attention_mask'].shape, data[1]['attention_mask'].shape)
+    # print(len(data), data[0]['labels'].shape, data[1]['labels'].shape)
+    # print(len(data), data[0]['visual_embeds'].shape, data[1]['visual_embeds'].shape)
+    # print(len(data), data[0]['visual_attention_mask'].shape, data[1]['visual_attention_mask'].shape)
+    # print(len(data), data[0]['visual_token_type_ids'].shape, data[1]['visual_token_type_ids'].shape)
+    # print( data[0]['input_ids'])
+    
+    # max_pad = 0
+    # for i in range(len(data)):
+    #     if data[0]['input_ids'].shape[2] > max_pad:
+    #         max_pad = data[0]['input_ids'].shape[2]
+    
+    # result = F.pad(input=data[0]['input_ids'], pad=(0, max_pad), mode='constant', value=0)
+
+    # print('result',data[0]['input_ids'].shape,result.shape)
+    # print(data[0]['input_ids'])
+    # print(result)
+    # print(result[0][0])
+    # zipped = zip(data)
+    # return list(zipped)
+
 # Train
 visualbert_train_data = CustomDataLoaderVisualBERT(train_prompts, train_answer_choices, train_answers, train_image_paths, tokenizer, visual_embedder)
 visualbert_train_data_loader = DataLoader(visualbert_train_data, batch_size=1, shuffle=True)
@@ -188,19 +214,19 @@ model_visualbert = Model_VisualBERT(random_state=random_state,
                                 log_file=logger)
 
 
-training_experiment_name = f'{setup}_4epochs'
+training_experiment_name = f'{setup}_12epochs'
 
 model_visualbert.set_train_parameters(num_epochs=4, lr=5e-5, previous_num_epoch=0)
 
-model_visualbert.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
-model_visualbert.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+# model_visualbert.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
+# model_visualbert.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 '''
 Load from checkpoint to continue training
 '''
 model_from_checkpoint, optimizer_from_checkpoint, previous_num_epoch, criterion_from_checkpoint, tokenizer_from_checkpoint = model_visualbert.load_from_checkpoint(model_checkpoint_dir=f'./results/model_weights/visualbert_{training_experiment_name}/')
 
-training_experiment_name = f'{setup}_4epochs'
+training_experiment_name = f'{setup}_16epochs'
 
 model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state, 
 								train_data_loader=visualbert_train_data_loader,
@@ -214,8 +240,8 @@ model_visualbert_checkpoint = Model_VisualBERT(random_state=random_state,
                                 )
 
 model_visualbert_checkpoint.set_train_parameters(num_epochs=4, lr=5e-5, optimizer=optimizer_from_checkpoint, previous_num_epoch=previous_num_epoch)
-# # model_visualbert_checkpoint.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
-# # model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
+model_visualbert_checkpoint.train(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/')
+model_visualbert_checkpoint.get_training_stats(model_weights_dir=f'{os.getcwd()}/results/model_weights/visualbert_{training_experiment_name}/training_stats.csv')
 
 
 '''

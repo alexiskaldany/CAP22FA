@@ -95,10 +95,9 @@ class CustomDataLoaderVisualBERT(CustomDataLoader):
         text_encoding = self.tokenizer(prompts, choices, 
                                     return_tensors=self.return_tensors_type, 
                                     padding=True, max_length=self.max_length, 
-                                    # truncation=True, add_special_tokens=True
-                                    truncation=True
+                                    truncation=True, add_special_tokens=True
                                     )
-
+        
         # Visual Embeddings
         # # (batch_size, num_choices, visual_seq_length, visual_embedding_dim)
         visual_embeds = self.visual_embedder([self.image_paths[idx],])
@@ -116,6 +115,8 @@ class CustomDataLoaderVisualBERT(CustomDataLoader):
 
         # Inputs Dict
         inputs_dict = {k: v.unsqueeze(0) for k, v in text_encoding.items()}
+        print(inputs_dict['input_ids'])
+        print(inputs_dict['input_ids'].shape)
         inputs_dict.update(
                     {
                             "visual_embeds": visual_embeds,
