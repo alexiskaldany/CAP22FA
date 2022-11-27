@@ -94,7 +94,7 @@ python3 plot_model_results.py
 
 # <a name="paper"></a>
 ## Paper
-[Final Paper]()
+[Final Paper](https://docs.google.com/document/d/1F0sm1jjntVK7CECtQvxg2jkOu64l4hIXS2o6nf7ROYc/edit?usp=sharing)
 
 # <a name="references"></a>
 ## References
