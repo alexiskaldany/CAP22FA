@@ -107,6 +107,3 @@ AI2 Diagram Dataset (AI2D) was accessed on 9/5/2022 from https://registry.openda
 # <a name="license"></a>
 ## Licensing
 * MIT License
-
-
-'
