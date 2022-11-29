@@ -632,7 +632,7 @@ class Model_VisualBERT(VQAModel):
         # load the model checkpoint
         logger.info(f"{datetime.now()} -- [Model Checkpoint Loading] Loading model from checkpoint {model_checkpoint_dir}checkpoint/model.pth...")
         print(f"{datetime.now()} -- [Model Checkpoint Loading] Loading model from checkpoint {model_checkpoint_dir}checkpoint/model.pth...")
-        checkpoint = torch.load(f'{model_checkpoint_dir}checkpoint/model.pth')
+        checkpoint = torch.load(model_checkpoint_dir / 'checkpoint/model.pth')
 
         # load model weights state_dict
         self.model = VisualBertForMultipleChoice.from_pretrained("uclanlp/visualbert-vcr", state_dict = checkpoint['model_state_dict'], ignore_mismatched_sizes=True)

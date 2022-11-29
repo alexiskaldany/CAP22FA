@@ -17,6 +17,8 @@ ANNOTATION_FOLDER = DATA_DIRECTORY / "ai2d" / "annotations"
 IMAGES_FOLDER = DATA_DIRECTORY / "ai2d" / "images"
 QUESTIONS_FOLDER = DATA_DIRECTORY / "ai2d" / "questions"
 ANNOTATED_IMAGES_FOLDER = DATA_DIRECTORY / "ai2d" / "annotated_images"
+MODEL_FOLDER = DATA_DIRECTORY.parent / "models"
+RESULTS_FOLDER = DATA_DIRECTORY.parent / "results" / "model_weights" 
 # Don't think this is supposed to run here? commenting it out
 # if ANNOTATED_IMAGES_FOLDER.exists() == False:
 #     os.makedirs(ANNOTATED_IMAGES_FOLDER)

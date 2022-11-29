@@ -12,10 +12,15 @@ from loguru import logger
 import glob
 import json
 import pandas as pd
-# def checking_folders(path_dict:dict):
-#     if not path_dict["DATA_DIRECTORY"].exists(): 
-#         os.makedirs(DATA_DIRECTORY)
-#     return True
+
+path = os.getcwd()
+# parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
+
+# add src to executable path to allow imports from src
+sys.path.insert(0, path)
+from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER
+from src.utils.applying_annotations import execute_full_set_annotation
+# from src.utils.visual_embeddings import get_multiple_embeddings
 
 def download_data(DATA_DIRECTORY:Path,ANNOTATED_IMAGES_FOLDER:Path):
     '''
@@ -48,6 +53,13 @@ def download_data(DATA_DIRECTORY:Path,ANNOTATED_IMAGES_FOLDER:Path):
             os.makedirs(ANNOTATED_IMAGES_FOLDER)
         if not DATA_DIRECTORY.exists(): 
             os.makedirs(DATA_DIRECTORY)
+        if os.path.exists(DATA_DIRECTORY / "images"):
+            logger.info("Data already downloaded")
+            try:
+                os.system(f"rm -R {DATA_DIRECTORY}/__MACOSX")
+            except:
+                logger.info("No __MACOSX folder")
+            return
         download_command = f"aws s3 cp --no-sign-request s3://ai2-public-datasets/diagrams/ai2d-all.zip {DATA_DIRECTORY}"
         os.system(download_command)
         logger.info("Completed downloading the data")
@@ -55,7 +67,8 @@ def download_data(DATA_DIRECTORY:Path,ANNOTATED_IMAGES_FOLDER:Path):
         os.system(f"unzip {DATA_DIRECTORY}/ai2d-all.zip -d {DATA_DIRECTORY}")
         logger.info("Completed unzipping the data")
         logger.info("Deleting the zip file")
-        os.system(f"rm {DATA_DIRECTORY}/ai2d-all.zip && rm {DATA_DIRECTORY}/__MACOSX -rf")
+        os.system(f"rm {DATA_DIRECTORY}/ai2d-all.zip")
+        os.system(f"rm -R {DATA_DIRECTORY}/__MACOSX")
         print("Download and cleanup complete")
         return True
     except Exception as e:
@@ -147,19 +160,14 @@ def create_dataframe(data_list:list):
 
 
 if __name__ == "__main__":
-    print("Executing prepare_and_download.py")
-
+    logger.info("Executing prepare_and_download.py")
+    logger
     # get current directory
     path = os.getcwd()
     # parent_path = os.path.abspath(os.path.join(path, os.pardir, os.pardir))
 
     # add src to executable path to allow imports from src
     sys.path.insert(0, path)
-
-    from src.utils.configs import DATA_JSON, DATA_CSV, DATA_DIRECTORY, ANNOTATION_FOLDER, IMAGES_FOLDER, QUESTIONS_FOLDER, ANNOTATED_IMAGES_FOLDER
-    from src.utils.applying_annotations import execute_full_set_annotation
-    from src.utils.visual_embeddings import get_multiple_embeddings
-
     # If folder empty then download otherwise already has data and don't need to duplicate/replace
     if DATA_DIRECTORY.exists() == False:
         download_data(DATA_DIRECTORY=DATA_DIRECTORY, ANNOTATED_IMAGES_FOLDER=ANNOTATION_FOLDER)
@@ -191,37 +199,37 @@ if __name__ == "__main__":
     annotated_image_path = [str(ANNOTATED_IMAGES_FOLDER / f"{id}.png") for id in id_list]
     dataframe["annotated_image_path"] = annotated_image_path
     dataframe.to_csv(DATA_CSV, index=False)
-    logger.info("Getting annotated images embeddings")
-    annotated_list = []
-    raw_list = []
-    try:
-        annotated_images_embeddings = get_multiple_embeddings(list(dataframe["annotated_image_path"]))
-    except:
-        logger.exception("Error getting embeddings")
-    # dataframe["annotated_image_embeds"] = dataframe.apply(
-    #     lambda x: annotated_images_embeddings[x["image_id"]]
-    #     if annotated_images_embeddings[x["image_id"]]
-    #     else []
-    # )
+    # logger.info("Getting annotated images embeddings")
+    # annotated_list = []
+    # raw_list = []
+    # try:
+    #     annotated_images_embeddings = get_multiple_embeddings(list(dataframe["annotated_image_path"]))
+    # except:
+    #     logger.exception("Error getting embeddings")
+    # # dataframe["annotated_image_embeds"] = dataframe.apply(
+    # #     lambda x: annotated_images_embeddings[x["image_id"]]
+    # #     if annotated_images_embeddings[x["image_id"]]
+    # #     else []
+    # # )
 
-    try:
-        raw_images_embeddings = get_multiple_embeddings(list(dataframe["image_path"]))
-    except:
-        logger.exception("Error getting embeddings")
-    for index, row in dataframe.iterrows():
-        if index % 100:
-            logger.info(f"At index: {index}")
-        img_id = str(row["image_id"])
-        if img_id in annotated_images_embeddings:
-            annotated_list.append(annotated_images_embeddings[img_id])
-        if img_id not in annotated_images_embeddings:
-            annotated_list.append([])
-        if img_id in raw_images_embeddings:
-            raw_list.append(raw_images_embeddings[img_id])
-        if img_id not in raw_images_embeddings:
-            raw_list.append([])
-    if dataframe.shape[0] == len(annotated_list):
-        dataframe["annotated_images_embeddings"] = annotated_list
-    if dataframe.shape[0] == len(raw_list):
-        dataframe["raw_image_embeddings"] = raw_list      
-    dataframe.to_csv(DATA_CSV, index=False)
+    # try:
+    #     raw_images_embeddings = get_multiple_embeddings(list(dataframe["image_path"]))
+    # except:
+    #     logger.exception("Error getting embeddings")
+    # for index, row in dataframe.iterrows():
+    #     if index % 100:
+    #         logger.info(f"At index: {index}")
+    #     img_id = str(row["image_id"])
+    #     if img_id in annotated_images_embeddings:
+    #         annotated_list.append(annotated_images_embeddings[img_id])
+    #     if img_id not in annotated_images_embeddings:
+    #         annotated_list.append([])
+    #     if img_id in raw_images_embeddings:
+    #         raw_list.append(raw_images_embeddings[img_id])
+    #     if img_id not in raw_images_embeddings:
+    #         raw_list.append([])
+    # if dataframe.shape[0] == len(annotated_list):
+    #     dataframe["annotated_images_embeddings"] = annotated_list
+    # if dataframe.shape[0] == len(raw_list):
+    #     dataframe["raw_image_embeddings"] = raw_list      
+    # dataframe.to_csv(DATA_CSV, index=False)

@@ -26,6 +26,7 @@ Improve on [research](https://arxiv.org/pdf/1603.07396.pdf)<sup>1</sup> done in 
 ## Folder Structure
 ```
 .
+├── archive                 # Experimental scripts
 ├── assets                  # For storing other supporting assets like images, logos, gifs, etc.
 ├── documents               # Research documents
 ├── example_data            # Sample of dataset 
@@ -50,13 +51,44 @@ Improve on [research](https://arxiv.org/pdf/1603.07396.pdf)<sup>1</sup> done in 
 # <a name="instructions"></a>
 ## How to Run
 
+This program is intended to be run on an EC2 configured with Ubuntu. The following instructions assume a fresh install.
+
+### Requirements
+
+- The dataset is contained on AWS S3. You may need AWS keys to download the dataset.
+- Python 3.9 or higher.
+
+
 ### Setup
-Execute model download and data preprocessing:
+
+
+1. Clone the repo and enter into the directory
+
 ```
-cd src/
-python3 main.py
+git clone https://github.com/alexiskaldany/CAP22FA.git
+cd CAP22FA
 ```
 
+2. Create the virtual environment and install the dependencies.
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+3. Download the dataset from AWS
+
+```
+python3 ./src/utils/prepare_and_download.py
+```
+
+4. Train the model
+
+```
+python3 ./src/models/model_training.py
+```
 ### Modeling
 Execute model training for a specified model setup type:
 ```
