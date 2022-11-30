@@ -52,30 +52,31 @@ Improve on [research](https://arxiv.org/pdf/1603.07396.pdf)<sup>1</sup> done in 
 ### Original Paper
 
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/background01.png)
-Published on 24 Mar 2016, `A Diagram Is Worth A Dozen Images` set out to "study the problem of diagram interpretation and reasoning, the challenging task of identifying the structure of a diagram and the semantics of its constituents and their relationships" <sup>20</sup>
+Published on 24 Mar 2016, `A Diagram Is Worth A Dozen Images` set out to "study the problem of diagram interpretation and reasoning, the challenging task of identifying the structure of a diagram and the semantics of its constituents and their relationships". <sup>20</sup>
 
+Their solution was to create Diagram Parse Graphs (DPG), which they used to model the structure of diagrams. DPGs are a directed graph with nodes representing diagram elements and edges representing relationships between diagram elements. Derived from the diagrams, these DPGs were combined with the natural language question to generate the final answer.  <sup>20</sup>
+
+This paper generated a unique architecture that was purpose built to DQA. Compared to more general architectures, this architecture was able to achieve a 7% improvement in accuracy. It should be noted that the baseline is 25% accuracy, and the best model (DPGs) recieved  <sup>20</sup>
 
 ### Diagram Question Answering
 
 Solving Diagram Question Answering (DQA) is a multimodal task that requires the model to understand the diagram and the question simultaneously. The general approach is:
 
-  * Extract features from the diagram and question
-  * Combine the features to generate a final representation
-  * Use the final representation to predict the answer
+* Extract features from the diagram and question
+* Combine the features to generate a final representation
+* Use the final representation to predict the answer
 
 DQA system can be seen as an algorithm that takes as input an image and a natural language question about the image and generates a natural language answer as the output.
 
 A good DQA system must be capable of solving a broad spectrum of typical NLP and CV tasks, as well as reasoning about image content. It is clearly a multi-discipline AI research problem, involving CV, NLP and Knowledge Representation & Reasoning (KR). <sup>19</sup>
 
-### What We Want to Try
+### What We DID
 
 ![sample_diagram](https://github.com/alexiskaldany/CAP22FA/blob/main/assets/background04.png)
 
-* We want to improve on the original paper by trying out more generalizable models and different approaches to the problem.
+* We initially wanted to improve on the original paper by trying out more generalizable models and different approaches to the problem. We were unfamiliar with building graph neurnal networks or "DPGs" so we wanted to attempt to solve this problem with tools more familiar to us. 
 
 * We used a transformer-based model to extract and combine features from the diagram and question. The same model also predict the answer.
-
-
 
 # <a name="instructions"></a>
 
@@ -214,6 +215,7 @@ AI2 Diagram Dataset (AI2D) was accessed on 9/5/2022 from https://registry.openda
 18. Xinlei Chen, Hao Fang, Tsung-Yi Lin, Ramakrishna Vedantam, Saurabh Gupta, Piotr Dolla ́r, and C Lawrence Zitnick. Microsoft COCO captions: Data collection and evaluation server. arXiv preprint arXiv:1504.00325, 2015.
 19. [Tryolabs](https://tryolabs.com/blog/2018/03/01/introduction-to-visual-question-answering)
 20. [A Diagram is Worth a Dozen Images](https://arxiv.org/pdf/1603.07396.pdf)
+
 # <a name="license"></a>
 
 ## Licensing
