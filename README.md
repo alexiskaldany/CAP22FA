@@ -64,39 +64,39 @@ This program is intended to be run on an EC2 configured with Ubuntu. The followi
 
 1. Clone the repo and enter into the directory
 
-```
+```bash
 git clone https://github.com/alexiskaldany/CAP22FA.git
 cd CAP22FA
 ```
 
 2. Create the virtual environment and install the dependencies.
 
-```
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-3. Download the dataset from AWS
+3. Run `prepare_and_download.py` to download the dataset and prepare the data for training. A `data` folder will be created inside `src` where all the data will be stored. This function also triggers the annotation scripts and takes care of all preprocessing.
 
-```
+```bash
 python3 ./src/utils/prepare_and_download.py
 ```
 
-4. Train the model
+#### Issues
 
-```
-python3 ./src/models/model_training.py
-```
+There are small differences in the way paths work on different operating systems. Efforts have been taken to ameliorate this,
+
 ### Modeling
+
 Execute model training for a specified model setup type:
-```
+```bash
 cd src/models/
 python3 model_training.py
 ```
 or to execute as background program:
-```
+```bash
 cd src/models/
 nohup python3 model_training.py
 ps ax | grep "model_training.py"
@@ -104,7 +104,7 @@ ps ax | grep "model_training.py"
 
 ### Plot Results
 Execute specified plot types for training and testing results:
-```
+```bash
 cd src/models/
 python3 plot_model_results.py
 ```
